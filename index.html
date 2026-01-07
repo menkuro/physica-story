@@ -1,0 +1,2315 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<meta name="theme-color" content="#070a12" />
+<title>PHYSICA — 余白の実験室</title>
+<style>
+  :root{
+    /* ---- PHYSICA: "余白の実験室" theme ---- */
+    --bg0:#070a12;
+    --bg1:#0b1020;
+    --panel:#0f172a;
+    --paper: rgba(255,255,255,.055);
+    --paper2: rgba(255,255,255,.032);
+    --line: rgba(255,255,255,.10);
+
+    --text:#e9efff;
+    --muted:#aeb8d4;
+
+    --ink:#cfd7ff;
+    --accent:#7c5cff;
+    --accent2:#38bdf8;
+
+    --good:#3ddc97;
+    --warn:#ffd166;
+    --bad:#ff5c77;
+
+    --radius:16px;
+    --shadow: 0 18px 60px rgba(0,0,0,.55);
+
+    --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Hiragino Sans", "Noto Sans JP", "Helvetica Neue", Arial;
+    --serif: ui-serif, "Yu Mincho", "Hiragino Mincho ProN", "Noto Serif JP", "Times New Roman", serif;
+  }
+
+  *{box-sizing:border-box}
+  html,body{height:100%}
+
+  body{
+    margin:0;
+    font-family: var(--sans);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+    overflow-x:hidden;
+
+    /* 夜の研究室 + うっすら星屑 */
+    background:
+      radial-gradient(1200px 700px at 20% -10%, rgba(124,92,255,.18), transparent 55%),
+      radial-gradient(900px 600px at 110% 20%, rgba(56,189,248,.10), transparent 60%),
+      radial-gradient(700px 500px at 40% 120%, rgba(124,92,255,.10), transparent 65%),
+      linear-gradient(180deg, var(--bg1), var(--bg0));
+  }
+
+  /* subtle noise / grain */
+  body::before{
+    content:"";
+    position:fixed;
+    inset:0;
+    pointer-events:none;
+    background:
+      repeating-linear-gradient(0deg,
+        rgba(255,255,255,.020) 0px,
+        rgba(255,255,255,.020) 1px,
+        transparent 1px,
+        transparent 4px),
+      repeating-linear-gradient(90deg,
+        rgba(255,255,255,.012) 0px,
+        rgba(255,255,255,.012) 1px,
+        transparent 1px,
+        transparent 6px);
+    opacity:.18;
+    mix-blend-mode: overlay;
+  }
+
+  header{
+    position:sticky; top:0; z-index:10;
+    background: rgba(7,10,18,.82);
+    border-bottom:1px solid rgba(255,255,255,.08);
+    backdrop-filter: blur(12px);
+  }
+
+  .wrap{
+    max-width:1100px;
+    margin:0 auto;
+    padding: calc(14px + env(safe-area-inset-top)) 14px 12px;
+  }
+
+  .title{
+    display:flex; align-items:flex-end; justify-content:space-between;
+    gap:12px; flex-wrap:wrap;
+  }
+
+  h1{
+    margin:0;
+    font-size:18px;
+    letter-spacing:.08em;
+    font-weight:900;
+  }
+
+  .subtitle{
+    color: var(--muted);
+    font-size:12px;
+    margin-top:7px;
+    line-height:1.45;
+  }
+
+  .bar{
+    display:flex; gap:10px; flex-wrap:wrap; align-items:center;
+    margin-top:10px;
+  }
+
+  /* HUD chip: instrument readout */
+  .chip{
+    border:1px solid rgba(255,255,255,.12);
+    background:
+      radial-gradient(500px 80px at 20% 0%, rgba(124,92,255,.10), transparent 55%),
+      linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+    border-radius: 999px;
+    padding: 7px 10px;
+    font-size:12px;
+    color: var(--muted);
+    display:inline-flex;
+    gap:8px;
+    align-items:center;
+    white-space:nowrap;
+    box-shadow: 0 0 0 1px rgba(0,0,0,.25) inset;
+  }
+  .chip strong{
+    color: var(--text);
+    font-family: var(--mono);
+    font-variant-numeric: tabular-nums;
+    letter-spacing:.02em;
+  }
+
+  .btn{
+    cursor:pointer;
+    border:1px solid rgba(255,255,255,.14);
+    border-radius: 12px;
+    background: rgba(255,255,255,.05);
+    color: var(--text);
+    padding: 10px 12px;
+    font-weight:800;
+    user-select:none;
+    touch-action: manipulation;
+    box-shadow: 0 10px 30px rgba(0,0,0,.18);
+  }
+  .btn.primary{
+    background:
+      radial-gradient(600px 160px at 30% 0%, rgba(255,255,255,.20), transparent 60%),
+      linear-gradient(180deg, rgba(124,92,255,.98), rgba(124,92,255,.52));
+    border-color: rgba(124,92,255,.58);
+  }
+  .btn.danger{
+    background: rgba(255,92,119,.12);
+    border-color: rgba(255,92,119,.35);
+  }
+  .btn:active{transform: translateY(1px)}
+  .btn[disabled]{opacity:.45; pointer-events:none}
+
+  /* large primary action (研究など) */
+  .big{
+    width:100%;
+    padding: 14px 14px;
+    font-size:14px;
+    border-radius: 14px;
+  }
+
+  /* generic title label used in modal headers */
+  .name{
+    font-weight:900;
+    font-size:14px;
+    letter-spacing:.05em;
+  }
+
+  @media (hover:hover){
+    .btn:hover{ border-color: rgba(255,255,255,.22); background: rgba(255,255,255,.07); }
+    .btn.primary:hover{ filter: brightness(1.04); }
+  }
+
+  main{
+    max-width:1100px;
+    margin:0 auto;
+    padding: 12px 14px calc(90px + env(safe-area-inset-bottom));
+  }
+
+  .grid{
+    display:grid;
+    gap:12px;
+    grid-template-columns: 1.2fr .8fr;
+    align-items:start;
+  }
+  @media (max-width: 980px){ .grid{grid-template-columns:1fr;} }
+
+  .panel{
+    border:1px solid rgba(255,255,255,.10);
+    border-radius: var(--radius);
+    background: rgba(15,23,42,.62);
+    overflow:hidden;
+    box-shadow: var(--shadow);
+  }
+
+  .hd{
+    display:flex; align-items:center; justify-content:space-between;
+    gap:10px; flex-wrap:wrap;
+    padding: 12px 12px;
+    border-bottom:1px solid rgba(255,255,255,.08);
+    background:
+      radial-gradient(900px 120px at 20% 0%, rgba(124,92,255,.12), transparent 60%),
+      rgba(255,255,255,.035);
+  }
+  .hd h2{
+    margin:0;
+    font-size:12px;
+    letter-spacing:.10em;
+    font-weight:900;
+    color: rgba(233,239,255,.92);
+  }
+
+  .bd{ padding: 12px; }
+
+  /* Tabs: "index" feel */
+  .tabs{display:flex; gap:8px; flex-wrap:wrap}
+  .tab{
+    cursor:pointer;
+    border:1px solid rgba(255,255,255,.10);
+    background: rgba(255,255,255,.03);
+    color: var(--muted);
+    border-radius: 999px;
+    padding: 8px 10px;
+    font-size:12px;
+    user-select:none;
+    position:relative;
+  }
+  .tab.active{
+    color: var(--text);
+    border-color: rgba(124,92,255,.55);
+    background: rgba(124,92,255,.18);
+  }
+  .tab.active::after{
+    content:"";
+    position:absolute;
+    left:10px; right:10px; bottom:-7px;
+    height:2px;
+    border-radius:99px;
+    background: linear-gradient(90deg, rgba(124,92,255,.0), rgba(124,92,255,.95), rgba(56,189,248,.65), rgba(124,92,255,.0));
+  }
+
+  .row{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
+  .muted{color:var(--muted); font-size:12px; line-height:1.45}
+
+  /* ===== Story section: notebook / margin ===== */
+  .storyTitle{
+    font-weight:950;
+    font-size:15px;
+    letter-spacing:.04em;
+  }
+
+  .storyText{
+    margin-top:10px;
+    line-height:1.85;
+    color: rgba(233,239,255,.94);
+    white-space: pre-line;
+
+    font-family: var(--serif);
+    font-size: 13.5px;
+
+    padding: 14px 14px 14px 18px;
+    border-radius: 14px;
+
+    /* ruled paper feel */
+    background:
+      linear-gradient(90deg, rgba(124,92,255,.18), rgba(124,92,255,.18)) 12px 0/2px 100% no-repeat,
+      repeating-linear-gradient(180deg,
+        rgba(255,255,255,.050) 0px,
+        rgba(255,255,255,.050) 1px,
+        transparent 1px,
+        transparent 26px),
+      linear-gradient(180deg, var(--paper), var(--paper2));
+    border:1px solid rgba(255,255,255,.10);
+    box-shadow: 0 12px 34px rgba(0,0,0,.28);
+  }
+
+  /* Archive modal: lighter story blocks (less ruled lines) */
+  .modal .storyText{
+    font-size: 12.5px;
+    padding: 10px 12px;
+    background: rgba(255,255,255,.03);
+    border:1px solid rgba(255,255,255,.09);
+    box-shadow: none;
+  }
+
+  /* Story requirements text: looks like footnote */
+  #storyReq{
+    margin-top: 10px;
+    padding-left: 2px;
+    font-family: var(--sans);
+    color: rgba(174,184,212,.92);
+  }
+
+  .log{
+    margin-top:12px;
+    border-top:1px solid rgba(255,255,255,.08);
+    padding-top:12px;
+    display:flex; flex-direction:column; gap:8px;
+    max-height: 46vh;
+    overflow:auto;
+  }
+  .logItem{
+    position:relative;
+    border:1px solid rgba(255,255,255,.09);
+    background: rgba(255,255,255,.03);
+    border-radius: 14px;
+    padding: 10px 10px 10px 12px;
+  }
+  .logItem::before{
+    content:"";
+    position:absolute;
+    left:10px; top:10px;
+    width:6px; height:6px;
+    border-radius:99px;
+    background: rgba(56,189,248,.65);
+    box-shadow: 0 0 0 3px rgba(56,189,248,.12);
+  }
+  .logItem .t{
+    padding-left: 12px;
+    font-weight:850; font-size:12px;
+    letter-spacing:.04em;
+  }
+  .logItem .b{
+    margin-top:6px;
+    color: rgba(174,184,212,.95);
+    font-size:12px;
+    line-height:1.55;
+  }
+
+  /* ===== Scrollbars: "quiet lab glass" ===== */
+  .scrollbar{
+    scrollbar-width: thin; /* Firefox */
+    scrollbar-color: rgba(124,92,255,.58) rgba(255,255,255,.05);
+  }
+  /* WebKit (Chrome/Safari/Edge) */
+  .scrollbar::-webkit-scrollbar{
+    width: 10px;
+    height: 10px;
+  }
+  .scrollbar::-webkit-scrollbar-track{
+    background: rgba(255,255,255,.035);
+    border: 1px solid rgba(255,255,255,.06);
+    border-radius: 999px;
+  }
+  .scrollbar::-webkit-scrollbar-thumb{
+    background: linear-gradient(180deg, rgba(124,92,255,.55), rgba(56,189,248,.45));
+    border: 2px solid rgba(7,10,18,.82);
+    border-radius: 999px;
+    box-shadow: 0 0 0 1px rgba(0,0,0,.25) inset;
+  }
+  .scrollbar::-webkit-scrollbar-thumb:hover{
+    background: linear-gradient(180deg, rgba(124,92,255,.70), rgba(56,189,248,.58));
+  }
+
+  /* Keep content from sitting under the scrollbar */
+  .log{
+    padding-right: 6px;
+    scrollbar-gutter: stable;
+  }
+
+  /* Right panel (実験室) becomes its own scroll area */
+  .labScroll{
+    overflow:auto;
+    padding-right: 6px;
+    scrollbar-gutter: stable;
+    max-height: clamp(320px, 68vh, calc(100vh - 220px));
+    max-height: clamp(320px, 68vh, calc(100dvh - 220px));
+  }
+
+  /* Lists / cards */
+  .list{display:flex; flex-direction:column; gap:10px}
+  .card{
+    border:1px solid rgba(255,255,255,.10);
+    background: rgba(255,255,255,.03);
+    border-radius: 14px;
+    padding: 12px;
+  }
+  .card .name{font-weight:900; font-size:13px; letter-spacing:.03em}
+  .card .desc{margin-top:6px; color: var(--muted); font-size:12px; line-height:1.5}
+  .card .meta{margin-top:10px; display:flex; gap:8px; flex-wrap:wrap; align-items:center}
+
+  .pill{
+    border:1px solid rgba(255,255,255,.10);
+    background: rgba(255,255,255,.03);
+    color: var(--muted);
+    border-radius: 999px;
+    padding: 6px 8px;
+    font-size:11px;
+    white-space:nowrap;
+  }
+
+  /* In-card chip (refs/terms buttons) */
+  .chip.small{ padding:4px 8px; font-size:11px; }
+  .chip:hover{ border-color: rgba(255,255,255,.22); color: var(--text); }
+  .chip:disabled{ opacity:.45; cursor:not-allowed; }
+
+  .card.hot{
+    outline:1px solid rgba(255,255,255,.18);
+    box-shadow: 0 0 0 1px rgba(255,255,255,.06) inset;
+  }
+
+  .refs, .terms{
+    margin-top:10px;
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+  }
+
+  textarea{
+    width:100%;
+    min-height:110px;
+    border-radius: 12px;
+    border:1px solid rgba(255,255,255,.12);
+    background: rgba(255,255,255,.03);
+    color: var(--text);
+    padding: 10px;
+    font-size:12px;
+    outline:none;
+    font-family: var(--mono);
+  }
+
+  .toast{
+    position: fixed;
+    left: 12px; right:12px;
+    bottom: calc(14px + env(safe-area-inset-bottom));
+    z-index: 50;
+    display:flex; justify-content:center;
+    pointer-events:none;
+  }
+  .toast > div{
+    max-width: 980px;
+    width:100%;
+    border:1px solid rgba(255,255,255,.12);
+    background: rgba(10,12,18,.90);
+    border-radius: 14px;
+    padding: 10px 12px;
+    display:flex; justify-content:space-between; gap:10px; align-items:center;
+    box-shadow: var(--shadow);
+  }
+  .toast .msg{font-size:12px; color: var(--muted); line-height:1.45}
+  .toast .msg strong{color: var(--text)}
+
+  /* ===== Story Archive Modal ===== */
+  .modal{
+    position:fixed; inset:0;
+    background: rgba(0,0,0,.62);
+    display:flex; align-items:center; justify-content:center;
+    z-index: 9999;
+    padding: 14px;
+  }
+  .modalCard{
+    width:min(980px, 100%);
+    background: rgba(10,12,18,.96);
+    border:1px solid rgba(255,255,255,.10);
+    border-radius: 18px;
+    box-shadow: var(--shadow);
+    overflow:hidden;
+    max-height: 86vh;
+    display:flex;
+    flex-direction: column;
+  }
+  .modalHd{
+    padding: 14px 14px 10px;
+    border-bottom:1px solid rgba(255,255,255,.08);
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap: 12px;
+    background:
+      radial-gradient(900px 160px at 30% 0%, rgba(124,92,255,.14), transparent 55%),
+      rgba(255,255,255,.03);
+  }
+  .modalBd{
+    padding: 12px 14px 14px;
+    overflow:auto;
+  }
+  .modalBd input, .modalBd select{
+    background: rgba(255,255,255,.06);
+    border:1px solid rgba(255,255,255,.10);
+    color: var(--text);
+    border-radius: 12px;
+    padding: 10px 10px;
+    outline: none;
+  }
+  .modalBd input{ flex:1; min-width: 220px; }
+  details.storyDetails > summary{
+    cursor:pointer;
+    user-select:none;
+    list-style:none;
+    color: var(--muted);
+    font-size: 12px;
+    margin-top: 8px;
+  }
+  details.storyDetails[open] > summary{ color: var(--text); }
+
+  @media (max-width:520px){
+    /* iPhone/小画面：上と下の占有を最小化 */
+    .subtitle{display:none;}
+    header .title .row{display:none;}
+    .bar{display:none;}
+    h1{font-size:16px;}
+    .wrap{padding: calc(10px + env(safe-area-inset-top)) 12px 10px;}
+    main{padding: 10px 12px calc(70px + env(safe-area-inset-bottom));}
+    .grid{gap:12px;}
+    .tabs{flex-wrap:nowrap; overflow:auto; padding-bottom:2px;}
+    .tab{flex:0 0 auto;}
+    .storyText{ font-size: 13px; padding: 12px 12px 12px 16px; }
+  }
+
+  /* click/tap feedback */
+  .tapFx{
+    position:fixed;
+    z-index:99999;
+    pointer-events:none;
+    font-weight:950;
+    font-size:14px;
+    letter-spacing:.02em;
+    color: rgba(233,239,255,.92);
+    text-shadow: 0 6px 18px rgba(0,0,0,.55);
+    transform: translate(-50%,-50%);
+    opacity:0;
+    animation: tapFloat 650ms ease-out forwards;
+  }
+  @keyframes tapFloat{
+    0%{opacity:0; transform:translate(-50%,-35%) scale(.85);}
+    12%{opacity:1;}
+    100%{opacity:0; transform:translate(-50%,-95%) scale(1.06);}
+  }
+  .tapRing{
+    position:fixed;
+    z-index:99998;
+    pointer-events:none;
+    width:22px; height:22px;
+    border-radius:999px;
+    border:2px solid rgba(124,92,255,.75);
+    transform: translate(-50%,-50%) scale(.6);
+    opacity:0;
+    animation: tapRing 520ms ease-out forwards;
+  }
+  @keyframes tapRing{
+    0%{opacity:0; transform:translate(-50%,-50%) scale(.45);}
+    15%{opacity:.75;}
+    100%{opacity:0; transform:translate(-50%,-50%) scale(2.2);}
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="title">
+      <div>
+        <h1>PHYSICA</h1>
+        <div class="subtitle" id="subtitle">測定は世界を写し、世界は測定を変える。— 物理と哲学の往復運動。</div>
+      </div>
+      <div class="row">
+        <button class="btn" id="btnSave">保存</button>
+        <button class="btn" id="btnExport">エクスポート</button>
+        <button class="btn" id="btnImport">インポート</button>
+      </div>
+    </div>
+
+    <div class="bar">
+      <div class="chip">時代: <strong id="vEra">—</strong></div>
+      <div class="chip">研究データ: <strong id="vData">0</strong></div>
+      <div class="chip">論文: <strong id="vPapers">0</strong></div>
+      <div class="chip">洞察: <strong id="vInsight">0</strong></div>
+      <div class="chip">出力: <strong id="vDps">0</strong>/秒</div>
+      <div class="chip" id="vOfflineChip" style="display:none">オフライン: <strong id="vOffline">+0</strong></div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="grid">
+    <!-- STORY -->
+    <section class="panel">
+      <div class="hd">
+        <h2>ストーリー</h2>
+        <div class="row">
+          <button class="btn primary" id="btnNextChapter" disabled>次の章へ</button>
+          <button class="btn" id="btnStoryArchive">書庫</button>
+        </div>
+      </div>
+      <div class="bd">
+        <div class="storyTitle" id="storyTitle">—</div>
+        <div class="storyText" id="storyText"></div>
+        <div class="muted" id="storyReq"></div>
+
+        <div class="log scrollbar" id="log"></div>
+      </div>
+    </section>
+
+    <!-- LAB / SHOP / ARCHIVE / SETTINGS -->
+    <section class="panel">
+      <div class="hd">
+        <h2 id="rightTitle">実験室</h2>
+        <div class="tabs" id="tabs"></div>
+      </div>
+      <div class="bd scrollbar labScroll" id="right"></div>
+    </section>
+  </div>
+</main>
+
+<div class="toast" id="toast" style="display:none">
+  <div>
+    <div class="msg" id="toastMsg"></div>
+    <button class="btn" id="toastClose" style="pointer-events:auto">OK</button>
+  </div>
+</div>
+
+<div class="modal" id="storyArchiveModal" style="display:none">
+  <div class="modalCard">
+    <div class="modalHd">
+      <div>
+        <div class="name">ストーリー書庫</div>
+        <div class="muted">過去の章本文と、出現済みの断章を読み返せます。</div>
+      </div>
+      <div class="row">
+        <button class="btn" id="btnStoryArchiveClose" style="pointer-events:auto">閉じる</button>
+      </div>
+    </div>
+    <div class="modalBd">
+      <div class="row" style="margin-bottom:10px; align-items:center">
+        <span class="muted">章</span>
+        <select id="storyArchiveEra"></select>
+        <input id="storyArchiveSearch" placeholder="キーワード検索（例：澪 / 装置 / 零点）" />
+        <button class="btn" id="btnStoryArchiveClear">クリア</button>
+      </div>
+      <div id="storyArchiveBody" class="list"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  "use strict";
+
+  // =========================
+  // ここをいじれば全体が変わる（シンプル）
+  // =========================
+  const SAVE_KEY = "PHYSICA_SAVE_STORY_v1";
+  const OLD_SAVE_KEY = "PHYSICA_SAVE_v2_dark"; // 旧版（必要なら取り込み）
+
+  const BAL = {
+    clickBase: 1.0,
+    equipCostPow: 1.15,
+    paperCostBase: 55,
+    paperCostPow: 1.18,
+    offlineCapSec: 12 * 60 * 60,
+    logKeep: 80
+  };
+
+  // 章（時代）: 史実ラインを意識しつつ、最後にフロンティアへ
+  const ERAS = [
+    {
+      id: "e0",
+      name: "近代の夜明け（17世紀）",
+      title: "手帳と振り子",
+      text:
+`放課後、朔（さく）は鍵の甘い準備室に滑り込み、窓際の机でノートを開いた。部屋にはチョークの粉と古い木の匂いが残っている。廊下の足音は遠く、ここだけが少し遅れて夕方になる。
+天井から吊った小さな振り子が往復するたび、朔は秒を数え、余白に小さな印を足す。数字は揃わない。揃わないから、次も確かめたくなる。揃えたい気持ちと、揃わないことへの安心が、同じページに並ぶ。
+
+扉が軋んで、澪（みお）が入ってきた。何かを探しているふりをして、机の上の紙片を一枚だけ整え、朔の書き込みをちらりと見て、黙って椅子に腰を下ろす。挨拶はない。代わりに、彼女が机の角へ置いた消しゴムの端が、ほんの少し欠けているのが見える。
+二人の間にあるのは会話より先に、紙の上の“違い”だった。澪は外れた一つの値にだけ、小さく丸を付ける。丸は強くなく、けれど迷いもない。
+
+「ここ、好きだな」
+それだけ言って、彼女は先に出ていく。朔は丸の上に目を置いたまま、振り子の影が揺れるのを見ていた。影は毎回同じ形ではないのに、同じように見える瞬間がある。
+机に残った紙の端を指で押さえると、ほんの少しだけ湿っていた。窓の外で、夕方の光が薄く折れて、準備室の床に細い線を引いた。朔は線を跨がずに、もう一度だけ印を足した。
+
+準備室を出ると、廊下の空気は少しだけ乾いていた。朔はノートを閉じようとして、閉じきれない。丸印の周りに、まだ書けていない説明が残っている気がした。
+彼は丸の隣に、意味のない点を二つだけ打って、ペンを止めた。説明にしてしまうと、丸の“良さ”が消える。良さは、理由の手前にある。
+
+帰り際、下駄箱の前で澪の後ろ姿が見えた。呼び止めるほどの用事はない。けれど視線だけが、彼女の肩に付いた白い粉を追ってしまう。澪は振り返らずに靴紐を結び直し、結び直したまま歩いていった。
+朔はその結び目を見て、今日の自分の結び目を思い出す。ほどけないことが正しいわけではない。けれど、ほどけないものがあると、世界の揺れが少しだけ静かになる。
+
+朔は扉を閉めてから、ようやく自分が笑っていないことに気づいた。笑わないままでも、心が動く日がある。`,
+      reqPapers: 0
+    },
+    {
+      id: "e1",
+      name: "電磁の時代（19世紀）",
+      title: "見えない流れの輪郭",
+      text:
+`春。机の上には細い線と金具と、針の付いた小さな箱。朔は無言で結び目を作り、澪は同じリズムで記録を取った。指先の動きは、互いに真似をしたわけではないのに、少しずつ似ていく。
+針がふるえるたび、二人は目線だけで合図を交わす。やり直しの合図、続けていい合図、いまは待つ合図。言葉にすると散ってしまうものを、目と手が代わりに保持する。
+
+窓を開けると、外の空気に混じって、遠くの工事音が薄く響いた。澪はその音の揺れを聞き分けるように黙り、朔は針の動きを待つ。待っている間に、ノートの余白が増えていく。
+ふいに針が、思っていた方向とは逆へ動いた。朔が眉を上げる前に、澪は机の脚を指で叩き、もう一度だけ同じ手順をなぞる。結果は似ていて、けれど同じではない。
+
+「見えないものって、見えているものの癖で隠れるんだよね」
+彼女は窓の外の電線を見て言う。言い方は軽いのに、言われた瞬間、朔の中で何かが静かに組み替わる。
+帰り道、街灯が点くまでのわずかな時間、二人は並んで歩いた。歩幅は揃えようとしないのに、角を曲がるタイミングだけが不思議と一致する。朔はポケットの中で、結び目の感触を確かめた。ほどけそうで、ほどけない、あの曖昧な硬さ。
+
+作業が終わる頃、針はようやく“落ち着いたふり”をした。落ち着いたふり、という言い方を朔が口にすると、澪は小さく笑った気がした。笑ったのか、呼吸が変わっただけなのかは分からない。
+片付けの最中、朔の結び目が一度だけほどけかけた。澪はそれを直さず、結び目の先を軽く押して戻す。指先が触れたのは糸ではなく、手順の方だった。
+帰り道、街の明かりが点り始める。見えない流れは見えないまま、しかし確かに“通った”痕跡だけが残る。二人はその痕跡を、言葉にしないで持ち帰った。`,
+      reqPapers: 8
+    },
+    {
+      id: "e2",
+      name: "相対の裂け目（20世紀初頭）",
+      title: "同時という幻想",
+      text:
+`夏祭り。二人は「同じ時間に」と言ったのに、同じは案外あいまいだった。
+屋台の灯りの列は、場所によって明るさが違う。時計の針は揃っているのに、胸の中の午後はずれていく。人波の間を抜けるたび、朔は自分の歩く速度が、誰かの都合に合わせて変わっていくのを感じた。
+
+澪からの短い通知は、ほんの少し遅れて届いた。朔は待ちながら、同じという約束の難しさを初めて知る。待つ時間は、ただの空白じゃない。空白の形で、こちらの期待が測られてしまう。
+提灯の列の下で、同じ曲が流れ、同じ笑い声が繰り返される。それでも、同じ瞬間は一度しかない。朔は手元のラムネ瓶の冷たさで、いまを留めようとした。
+
+やっと合流して、二人は言い訳をしない代わりに、次の合図を決めた。曲が変わる瞬間、橋の上の風、あの提灯が点くとき。目印は時間ではなく、環境の“癖”に置き換えられていく。
+橋の上で、澪は欄干に肘を置き、川面の反射を眺めた。水の光は揺れて、揺れているのに、どこか規則正しい。
+
+「同じって、性質じゃなくて……選び方かも」
+澪は独り言みたいに言った。朔はその言葉を、帰り道の暗さの中で反芻した。揃えるのではなく、揃ったことにする。その微かな暴力と、そこに宿る優しさ。二人は並んで歩きながら、同じことを考えているようで、少し違う場所を見ていた。
+
+祭りが終わる頃、風は少し冷えた。二人は人波を外れて、コンビニの前で缶を一つずつ買った。開ける音が、なぜか揃わない。揃わない音が、かえって安心だった。
+帰りのバスで、窓に映る提灯の残像が、何度も同じ形で流れていく。澪は眠そうに目を閉じ、朔はその横顔を見ないように外を見る。見ないようにする仕草の方が、見ているよりも強く残る。
+停留所を降りたあと、澪の通知がまた少し遅れて届いた。内容は「無事帰れた？」だけ。朔はすぐ返さず、二呼吸おいて返した。遅れを揃えるのではなく、遅れを受け取るための間。`,
+      reqPapers: 18
+    },
+    {
+      id: "e3",
+      name: "量子の群像（1920–40年代）",
+      title: "確率の海",
+      text:
+`秋。文化祭の準備で夜が増え、二人の会話も、必要なことと不要なことの境界が曖昧になった。
+朔は一つの現象に、たった一つの理由を当てはめたくなる。原因を一つに絞れば、心も整理できる気がした。けれど澪は、同じ出来事の周りに、いくつも小さな言い方を並べる。どれも少しずつ当たっていて、どれも完全ではない。
+
+教室の隅で、サイコロが転がる音がした。企画の順番決めだというのに、皆がその目の出方をやけに真剣に見つめる。朔は笑いそうになって、笑えなかった。偶然が偶然であるために、手続きが必要になる。
+澪は紙コップの底に鉛筆で印を付けて、「偏りがあるなら、それも記録」と言った。朔は頷く。偏りは、間違いかもしれないし、癖かもしれない。癖なら、扱い方がある。
+
+夜の廊下は、昼よりも長く感じた。蛍光灯の端が少しだけちらつき、影が二重になる。澪はその影を追いかけるように歩き、朔は影から外れないように歩いた。近づくでもなく、離れるでもなく、影の輪郭だけが頼りだった。
+準備室でノートを開くと、昼間に書いた数字が、夜になると別の顔をしている。朔は線を引き直したくなるが、澪は止める。「線を強くすると、他が見えなくなる」
+
+決めなかったものほど、壊れにくい。
+澪はノートの端に短く書く。「決めないで、見ておく」
+朔はその行を指でなぞらずに、ただ覚えた。覚える、という行為が、書くよりも少しだけ危ういことを、その夜はまだ知らなかった。
+
+片付けの最後に、黒板の端だけが消し残された。誰も気づかないほど薄い白。澪はそこを消さず、窓を閉める。朔も何も言わない。
+消し残しは失敗ではなく、夜の記録みたいだった。決めなかったこと、決めきれなかったこと。その薄さが、次の日の朝にだけ意味を持つ。`,
+      reqPapers: 32
+    },
+    {
+      id: "e4",
+      name: "宇宙への窓（1950–70年代）",
+      title: "遠い光の手紙",
+      text:
+`冬。進む道が少しずつ離れ、会える日は減った。だから、会えた日の匂いがはっきり残る。
+澪は遠くから届く古い記録を読み、朔は近くで拾える小さなノイズを掃除した。役割は違うのに、作業の姿勢だけが似ていく。どちらも、すぐには結果にならないものを相手にしている。
+
+澪が送ってくるメッセージは短い。けれど文末の癖が変わると、朔には分かる。忙しいのか、余裕があるのか、誰かに囲まれているのか、ひとりなのか。言葉よりも、言葉の間に挟まった沈黙が教えてくれる。
+ある日、澪は写真を一枚だけ送ってきた。夜空ではなく、白い紙の上に落ちた、細い光の筋。何も説明はない。朔は同じ長さの返事を急がず、同じ温度で返す。返しすぎると、受け取ったものが別の形に変わってしまう気がした。
+
+窓の外で雪が音もなく積もる。街の音が吸われ、遠い踏切の警報だけが遅れて届く。朔は、遅れの中にも秩序があることを、耳で知る。
+久しぶりに会えた日に、澪はコンビニのコーヒーを二つ買ってきて、片方を何も言わずに渡した。熱さは同じで、持ち方だけが違う。
+二人は同じ空の下にいない時間が増えたのに、同じ沈黙を共有している気がした。沈黙は、離れても届く。届くということ自体が、どこか不思議で、言葉にすると壊れそうだった。
+
+帰り道、朔は駅のホームで風の向きを確かめた。向きは読めない。読めないのに、肌は先に反応する。
+澪からの短い返事が届くまでの間、朔はコートのポケットで手を握る。握った手の温度だけが、いまここにある証拠だった。`,
+      reqPapers: 52
+    },
+    {
+      id: "e5",
+      name: "巨大科学（1970–2010）",
+      title: "人類サイズの実験",
+      text:
+`春。大きなプロジェクトに巻き込まれ、会議室の壁は白く、名前の列は長くなった。
+一人の確信は、すぐに“皆の言葉”に翻訳される。翻訳の途中で、角が丸くなり、手触りが失われる。朔はその過程を見て、息苦しくなることがあった。澪は息苦しさの代わりに、手続きを丁寧に整える。整えることで、失われるものを少しだけ遅らせられるから。
+
+議事録は、なぜかいつも明るい言葉で終わる。現実は明るくない日もあるのに。澪はその明るさを否定せずに、最後の一行だけを静かに書き換える。意味は変えない。角度だけを変える。
+誰かが「これで決まりだ」と言ったとき、澪は首を振らずに、机の上のペンを一本だけ動かした。線が少しズレる。それで議論が一段階戻る。戻ることを、敗北にしないための仕草。
+
+不確かさは、弱さではなく、手続きを守るための礼儀だ。
+帰り道、二人は並んで歩くが、話すのは必要最低限。言葉の代わりに、歩幅が揃っていく。揃う、というより、揃ってしまう。
+信号が青に変わる瞬間、澪は立ち止まらず、朔は同じ速度で追いついた。追いつくのに努力がいらないことが、なぜか少し怖い。
+夜、朔はふと、昔の丸印を思い出した。外れ値に付けられた、あの小さな丸。大きな会議室でも、小さな丸が必要だと、今なら分かる気がした。
+
+翌朝、共有フォルダには新しい版が置かれていた。誰が置いたのかは書いてない。澪の癖かもしれないし、違う誰かの癖かもしれない。
+朔はその“誰か”を特定しないまま、修正点だけを受け取った。特定しないことが、時に一番の協力になる。`,
+      reqPapers: 78
+    },
+    {
+      id: "e6",
+      name: "フロンティア（2010–）",
+      title: "暗黒の余白",
+      text:
+`夏。二人は“ないもの”の気配を追う役目になった。目の前には数字の海があり、そこには意味が混ざっているのか、混ざっていないのか分からない。
+見えているものを増やすのではなく、足りないものの輪郭を保つ。急いで名前を付ければ、探しているものは逃げてしまう。朔は言葉を急ぎがちで、澪は急がない。その違いが、仕事の速度を落とすのではなく、速度の定義を変えた。
+
+昼間の部屋は冷えすぎていて、夜の部屋は暑すぎる。温度差のせいで紙が反る。数字は反らないように見えて、反る。反ったことに気づけないとき、最も厄介な誤差が生まれる。
+澪は空欄のままの欄外を見つめ、「ここは残しておこう」と言う。朔は頷き、消しゴムを引っ込める。消したい衝動が引っ込むだけで、何かが少し救われる気がした。
+
+夜更け、窓に自分たちの顔が薄く映る。ガラスの向こうの街の灯りが、二人の輪郭を曖昧にする。朔はその曖昧さを嫌わないようになっていた。澪は最初から嫌っていなかったのかもしれない。
+その瞬間、二人は何かに“触れた”気がした。掴めないのに、確かに温度が変わる。手のひらではなく、呼吸の仕方が変わる。
+夜風が紙をめくる。答えより先に、問いの形だけが静かに整っていった。
+
+夜明け前、屋上に出ると、街はまだ輪郭を持っていなかった。灯りの点が散っているだけで、それが何を照らしているのかは分からない。
+澪は空を見上げずに、手すりの錆を指でなぞる。朔は空を見上げるが、星座を探さない。探すと、見つかったことにしたくなるからだ。
+二人は同じ場所に立っていて、同じものを見ていない。それでも、同じ“間”を共有している。間が共有できるなら、答えは急がなくていい。
+
+澪はメモを一行だけ残し、朔はその一行を読んでから折り畳んだ。折り畳んだことで、言葉は少しだけ遠くなる。`,
+      reqPapers: 110
+    },
+    {
+      id: "e7",
+      name: "余白の深海（2020–）",
+      title: "静かな校正",
+      text:
+`秋。研究室が移っても、机の上の風景は似ていた。紙、端末、飲みかけの水。違うのは、沈黙の密度だけだった。
+二人は古い記録を辿り直す作業を任された。誰かが一度「正しい」として通り過ぎたものを、もう一度だけ丁寧に触り直す。新しい発見は派手じゃない。むしろ、派手さを剥がしていく。
+
+ページの隅に残った鉛筆の跡は、誰の癖か分からない。澪はそれを消さない。消す理由がないからではなく、消さない方が正しい可能性があるからだ。朔はその判断の速度にまだ慣れない。
+「直すって、消すことじゃないんだね」
+朔が小さく言うと、澪は頷かず、ただ紙を一枚めくった。頷かないことで、言葉の重さだけが残る。
+
+深夜、プリンタの音が一度だけ鳴り、紙が吐き出される。白い紙の上に並ぶ記号は、どれも同じ顔をしているのに、行間の幅が微妙に違う。朔はその違いを見つけるたび、胸の奥で小さく息を吸う。
+澪は椅子を引く音を立てない。立てないことに意識があるのか、ないのか分からない。彼女が机の端に置いた付箋だけが、風でわずかに揺れる。
+
+「ここ、残しておこう」
+その言葉が再び出たとき、朔は理由を聞かなかった。聞かないまま、余白の形を手で確かめる。余白は穴ではなく、深さなのだと、体が先に理解していく。`,
+      reqPapers: 140
+    },
+    {
+      id: "e8",
+      name: "境界の庭（2020–）",
+      title: "線の外側",
+      text:
+`冬の終わり。校舎の屋上は風が強く、会話を短くする。二人は資料の束を抱えて、手すりの影に座った。
+朔は地図の上に線を引く。線の内側が対象で、外側は切り捨て。そうすると議論が早くなる。澪は線の外側を指でなぞり、そこにある何かを確かめるみたいに黙る。切り捨てたつもりの場所から、いつも何かが戻ってくるのを、彼女は知っている。
+
+遠くでチャイムが鳴り、音が風にほどける。ほどけた音は、戻ってきたときに形が違う。それでも、鳴ったことだけは消えない。
+澪は線を一本、消しゴムで薄くした。消さない。薄くする。薄い線は、決めたことを残しながら、決め切らない余地を残す。
+朔は薄い線の意味が分からなくて、けれど嫌ではなかった。分からないものを嫌う癖が、少しずつ緩んでいく。
+
+帰りに寄った小さな喫茶店で、二人は同じ席に座った。窓際の席は、外の光の具合で机の色が変わる。変わる机の上で、同じページを開く。
+「境界って、見えない方が正確なときがある」
+澪がそう言ったとき、朔は返事を探さずに、ただカップの縁を指で回した。円は閉じているのに、始まりが決められない。屋上の風が、まだ耳の中に残っていた。`,
+      reqPapers: 175
+    },
+    {
+      id: "e9",
+      name: "複製の季節（2020–）",
+      title: "同じ顔の違い",
+      text:
+`春。複写機の前に人が並ぶ季節になった。新しい年度は、いつも同じ手続きの繰り返しに見える。けれど、同じ紙は一枚もない。
+朔は束になった資料を受け取り、澪と並んでページをめくった。印刷の濃淡、紙の端のわずかな欠け。違いは些細で、些細だからこそ見落とすと痛い。
+
+「同じに見えるって、危ないね」
+澪はそう言って、二枚の紙を重ねた。重ねると、文字の輪郭が二重になって見える。ずれているのか、もともとそういう形なのか。朔は目を細める。目を細めると、見えるものが増えると同時に、見えなくなるものも増える。
+二人は違いを探しているのに、違いを大きくしたくはなかった。大きくすると、それは違いではなく別物になる。別物になった瞬間、比較はできなくなる。
+
+夕方、コピーの音が止むと、部屋が急に広く感じた。澪は紙を揃え、朔はホチキスを留める。留める位置がいつも少しだけ違う。違う位置に留めた方が、ページがめくりやすいこともある。
+「正しさ」より、「使える」へ。朔はその移動に、抵抗がなくなっている自分に気づく。
+
+帰り道、桜の花びらが二人の肩に落ちた。落ちた場所は違うのに、落ちたことだけが同じだった。朔はそれを払い落とさずに歩いた。澪も同じように、何も言わずに歩いた。`,
+      reqPapers: 215
+    },
+    {
+      id: "e10",
+      name: "透明な都市（2020–）",
+      title: "窓のない地図",
+      text:
+`夏。出張の帰り、二人は駅前の大きなガラスの建物を見上げた。昼の光が反射して、建物が空の一部みたいに見える。空の一部なのに、触れると硬い。
+澪はスマホの地図を開くが、画面の地図は滑らかすぎる。滑らかすぎて、迷う。朔は標識を見る。標識は不親切で、だから信用できるときがある。
+
+街は透明で、透明だからこそ自分の影が目立つ。二人の影は、角度によって重なるように見えたり、離れて見えたりする。影の振る舞いは気まぐれで、しかし規則もある。規則を言葉にしようとすると、影はすぐ別の形になる。
+澪は交差点の角で立ち止まり、短く息を吐く。朔はそのタイミングだけを覚える。地図には出ない目印。
+
+「窓が多いほど、外が分からなくなるね」
+彼女の言葉は比喩にも、ただの感想にも聞こえた。朔は答えず、ガラスに映った自分たちの姿を見た。映像は反転していて、目を合わせようとするとずれる。
+結局、二人は地図の外側を歩いた。細い路地、古い看板、匂いの濃い店。透明な都市の中で、透明じゃないものだけが道しるべになる。
+ホテルに戻って資料を開くと、ページの端に小さな折り目があった。澪がいつの間にか付けた印だ。窓のない地図でも、折り目は残る。残るものだけで、人は戻ってこられる。`,
+      reqPapers: 260
+    },
+    {
+      id: "e11",
+      name: "沈黙の通信（2020–）",
+      title: "遅れて届く波",
+      text:
+`秋雨。夜の研究室に、いつもより静かな音が落ちていた。雨の音は均一に見えて、均一ではない。強くなる瞬間と弱くなる瞬間が、言葉の前に意味を持つ。
+二人はヘッドホンを片耳ずつ分けて、ある“かすれ”を聴いた。聴こえるか、聴こえないかの境目。聴こえたと言ってしまえば、聴こえたことになる。聴こえないと言えば、聴こえないことになる。その危うさに、朔は少しだけ手が冷たくなる。
+
+澪は画面を見つめたまま、何度も同じ区間を再生する。繰り返すたび、同じに聴こえるところと、違って聴こえるところが出てくる。違って聴こえるのが、自分の気分のせいなのか、記録のせいなのか分からない。
+「急がないで」
+澪はそれだけ言った。急がないことは、怠けることとは違う。急がないことでしか守れないものがある。
+
+ふいに、画面の端に小さな跳ねが出た。跳ねは小さすぎて、見なかったことにできる。見なかったことにすると、世界は整う。けれど整いすぎた世界は、どこか嘘っぽい。
+朔は言葉を飲み込み、澪はマーカーを引かない。二人は跳ねの周りに、余白を残す。余白があることで、跳ねが跳ねでいられる。
+
+雨が止んだあと、外は妙に静かだった。静かすぎて、遠くの車の音が遅れて届く。遅れは誤差ではなく、距離の証拠。朔はその証拠を、胸の奥にしまった。澪は何も言わず、窓の鍵を掛けた。`,
+      reqPapers: 310
+    },
+    {
+      id: "e12",
+      name: "帰還の書架（2020–）",
+      title: "問いの保存",
+      text:
+`冬。久しぶりに、あの準備室へ戻った。改装の予定で、片付けの手伝いを頼まれたのだ。
+古い棚の奥から、振り子の糸が見つかった。朔は指で触れて、細さに驚く。こんな細いものに、あれほどの時間を預けていたのか。澪は笑わない。笑わないまま、糸を机の上にそっと置く。
+
+ノートも見つかった。若い字。急いで書いた線。外れた値に付けられた小さな丸。朔はページをめくりながら、自分が何を守ろうとしていたのかを思い出せない。代わりに、守れなかったものがいくつも思い出される。
+澪はノートの端の端を見て、「この余白、いいね」と言った。昔と同じ言い方なのに、聞こえ方が違う。言葉は同じでも、載る時間が違う。
+
+窓から入る冬の光は薄く、準備室の床にまた細い線を引いた。朔はその線を跨いでみた。跨いでも、何も起きない。何も起きないことが、少し寂しくて、少し安心だった。
+二人は、残すものと捨てるものを選んだ。選ぶ基準は説明できない。説明できないから、選び方だけが洗練されていく。
+
+帰り際、澪は棚の上に小さな箱を一つ置いた。中身は言わなかった。朔も聞かなかった。問いを保存する、という行為が、答えを保存するよりも長持ちすることを、二人はどこかで知っているようだった。`,
+      reqPapers: 365
+    },
+    {
+      id: "e13",
+      name: "未名の朝（—）",
+      title: "触れない確信",
+      text:
+`春の早朝。川沿いの道は、昼よりも世界が少ない。看板も、人も、余計な音も減って、空気の輪郭だけが残る。
+二人は橋の上で立ち止まり、手すりの冷たさを同じように確かめた。確かめたと言っても、言葉にはしない。確かめること自体が、言葉の前にある。
+
+水面には、空が映る。映りは揺れて、揺れているのに、消えない。朔はその揺れを、昔なら“誤差”と呼んでいたかもしれない。今は呼ばない。呼ばないことで、揺れは揺れのまま残る。
+澪は遠くの橋脚を眺め、ほんの少しだけ目を細めた。何かを見たいのではなく、見える範囲を整えるみたいに。
+
+「たぶん、これでいい」
+澪がそう言ったとき、“これ”が何を指すのかは分からない。けれど朔は頷いた。頷く理由も、説明しないまま。
+二人は歩き出す。歩幅は揃っていない。でも、揃っていないことを気にしなくなっている。揃わないまま進めることが、どこかで一番の成果だったのかもしれない。
+
+朝の光が強くなる前に、風が一度だけ吹いた。風は目に見えないのに、影を動かす。影が動いたことだけが、確かな印になる。
+朔はその印を、ノートに書かない。澪も書かない。書かないまま、胸のどこかで、確かに“触れた”気配だけを保って歩いた。`,
+      reqPapers: 430
+    }
+  ];
+
+
+
+  // 概念カード（年表で読める短い補助テキスト）
+  const CONCEPT_CARDS = [
+    // e0
+    { id:"c0_1", eraUnlock:0, tag:"方法論", name:"測定とは交渉である", desc:"測定は「自然を覗く穴」ではなく、自然と装置の相互作用の取り決め。", q:"あなたは何を固定し、何を変数として扱った？" },
+    { id:"c0_2", eraUnlock:0, tag:"哲学",   name:"モデルと世界",         desc:"式やモデルは世界そのものではなく、予測と理解のための圧縮。", q:"そのモデルは“何を捨てた”ことで成立している？" },
+    { id:"c0_3", eraUnlock:0, tag:"統計",   name:"誤差の倫理",           desc:"誤差は敵ではなく、知っている範囲を明示するための署名。", q:"不確かさを、どう説明できる？" },
+
+    // e1
+    { id:"c1_1", eraUnlock:1, tag:"電磁気", name:"場という実在",         desc:"場は“力の伝達”の別名か、それ自体が物理量として存在するのか。", q:"見えないものを“ある”と言う根拠は？" },
+    { id:"c1_2", eraUnlock:1, tag:"数学",   name:"対称性と保存則",       desc:"対称性は法則の短縮形。保存は、変えてはいけないものの宣言。", q:"何が保存されるとき、世界は何を許す？" },
+    { id:"c1_3", eraUnlock:1, tag:"哲学",   name:"観測の媒介",           desc:"私たちは現象そのものではなく、装置が吐き出す記号列を読む。", q:"“見た”と言う前に、何を介した？" },
+
+    // e2
+    { id:"c2_1", eraUnlock:2, tag:"相対論", name:"同時性の相対性",       desc:"同時は性質ではなく手続き。同期は約束事で、普遍ではない。", q:"あなたの“いま”は、誰の“いま”？" },
+    { id:"c2_2", eraUnlock:2, tag:"幾何",   name:"時空は幾何",           desc:"重力は力ではなく曲がり。運動は幾何の上の最短路になる。", q:"力を消しても説明できることは何？" },
+    { id:"c2_3", eraUnlock:2, tag:"哲学",   name:"操作主義の罠",         desc:"定義を操作に還元すると、実在は“手続きの外”へ逃げる。", q:"測れないものは存在しない？" },
+
+    // e3
+    { id:"c3_1", eraUnlock:3, tag:"量子",   name:"波動関数の意味",       desc:"状態なのか知識なのか。解釈の違いは、問いの立て方の違い。", q:"あなたは何を“確率”と呼んだ？" },
+    { id:"c3_2", eraUnlock:3, tag:"量子",   name:"測定問題",             desc:"なぜ一つの結果が起こるのか。観測が“事実”を作るのか。", q:"あなたの装置は、どこで決めている？" },
+    { id:"c3_3", eraUnlock:3, tag:"情報",   name:"デコヒーレンス",       desc:"環境との絡み合いが、古典的な見かけを作る。", q:"何が失われ、何が残る？" },
+
+    // e4
+    { id:"c4_1", eraUnlock:4, tag:"宇宙論", name:"宇宙は過去の編集",     desc:"観測は光速で遅れる。宇宙論は“時差のある断面”の再構成。", q:"あなたのデータはいつの宇宙？" },
+    { id:"c4_2", eraUnlock:4, tag:"宇宙論", name:"選択効果",             desc:"見えているものは、見えやすいもの。サンプルの偏りが結論を歪める。", q:"あなたは何を見落とす設計になっている？" },
+    { id:"c4_3", eraUnlock:4, tag:"統計",   name:"系統誤差",             desc:"ランダムではないズレ。補正できるが、気づけないと致命的。", q:"ズレはどこから来る？" },
+
+    // e5
+    { id:"c5_1", eraUnlock:5, tag:"実験",   name:"トリガーと世界",       desc:"装置は世界を切り出す。何を記録するかは、理論の影響を受ける。", q:"あなたの装置は何を捨てている？" },
+    { id:"c5_2", eraUnlock:5, tag:"統計",   name:"5σという儀式",         desc:"有意性は慣習。強い基準は安心をくれるが、盲点も作る。", q:"“確からしい”は誰が決める？" },
+    { id:"c5_3", eraUnlock:5, tag:"社会",   name:"合意としての真理",     desc:"再現・共有・批判が真理を支える。科学は共同体の技術でもある。", q:"あなたは誰に検証を委ねる？" },
+
+    // e6
+    { id:"c6_1", eraUnlock:6, tag:"暗黒",   name:"暗黒物質",             desc:"重力の痕跡だけが見える成分。粒子か、修正重力か。", q:"見えない原因をどう区別する？" },
+    { id:"c6_2", eraUnlock:6, tag:"暗黒",   name:"暗黒エネルギー",       desc:"宇宙膨張の加速。真空エネルギーか、重力理論の修正か。", q:"“定数”を疑うと何が起きる？" },
+    { id:"c6_3", eraUnlock:6, tag:"量子重力", name:"情報と時空",         desc:"ブラックホールは情報を壊すのか。時空は情報から生まれるのか。", q:"世界の最小単位は物質？情報？関係？" },
+
+    // e7
+    { id:"c7_1", eraUnlock:7, tag:"再現性", name:"再現と再演",           desc:"同じ結果が出ることと、同じ手続きを辿ることは違う。再現は自然の確認で、再演は手続きの確認。", q:"あなたは“自然”と“手続き”のどちらを確かめたい？" , terms:["再現性", "再演", "プロトコル", "バージョン"], refs:["c0_1", "c0_3", "c4_3", "c9_2"] },
+    { id:"c7_2", eraUnlock:7, tag:"執筆",   name:"校正の科学",           desc:"間違いを消すより、間違いが生まれる条件を整える。赤字は否定ではなく、読み手への配慮。", q:"あなたの文章は、どこで誤読を生む？" , terms:["執筆", "校正", "差分", "読者"], refs:["c0_2", "c10_1", "c11_3"] },
+    { id:"c7_3", eraUnlock:7, tag:"統計",   name:"確信の温度",           desc:"有意・非有意の二値ではなく、確信の“温度”として扱う。温度は、データと仮説の距離の指標。", q:"あなたの確信は、何で冷える？何で温まる？" , terms:["統計", "確信", "有意", "温度"], refs:["c0_3", "c4_2", "c5_2"] },
+
+    // e8
+    { id:"c8_1", eraUnlock:8, tag:"モデル", name:"外挿の誘惑",           desc:"範囲外の予測は、データより願いが強くなる。外挿は可能だが、代償（仮定）が増える。", q:"その予測は、どんな仮定を背負っている？" , terms:["外挿", "モデル", "仮定", "予測"], refs:["c0_2", "c8_2", "c9_2"] },
+    { id:"c8_2", eraUnlock:8, tag:"境界",   name:"境界条件の政治",       desc:"境界の引き方は“世界の切り取り方”。切り取れば外が生まれ、外はしばしば見捨てられる。", q:"あなたの境界は、何を外側に置いた？" , terms:["境界", "境界条件", "切り取り", "外側"], refs:["c4_2", "c10_2", "c2_2"] },
+    { id:"c8_3", eraUnlock:8, tag:"倫理",   name:"捨てたデータの行方",   desc:"外れ値を捨てるのは簡単だが、捨てた理由は残る。削除は透明性とセットで初めて許される。", q:"あなたは何を“捨てた”と記録できる？" , terms:["倫理", "透明性", "削除", "記録"], refs:["c10_1", "c12_1", "c0_3"] },
+
+    // e9
+    { id:"c9_1", eraUnlock:9, tag:"データ", name:"データセットという宇宙", desc:"データは“世界の写し”であり、同時に“収集者の癖”でもある。癖の説明がないデータは危うい。", q:"そのデータの癖を、どこまで言語化できる？" , terms:["データ", "データセット", "癖", "出自"], refs:["c12_1", "c10_1", "c8_3"] },
+    { id:"c9_2", eraUnlock:9, tag:"検証",   name:"同一性のテスト",       desc:"同じ結果が出ても、同じ原因とは限らない。検証は一致を喜ぶ前に、同一性を疑う。", q:"一致は“同一”を意味する？" , terms:["検証", "同一性", "一致", "原因"], refs:["c7_1", "c4_3", "c5_1"] },
+    { id:"c9_3", eraUnlock:9, tag:"オープン", name:"共有と功績",         desc:"共有は加速を生むが、功績の配分が歪むと共同体は割れる。引用は技術であり、礼儀でもある。", q:"あなたは誰の時間を借りた？" , terms:["共有", "功績", "クレジット", "協働"], refs:["c5_3", "c11_2", "c12_3"] },
+
+    // e10
+    { id:"c10_1", eraUnlock:10, tag:"可視化", name:"透明性の罠",         desc:"見えるようにすると、見せるべきでないものも漏れる。透明性は善ではなく、設計対象。", q:"見せることで守れるもの、壊れるものは？" , terms:["透明性", "説明責任", "開示", "罠"], refs:["c8_3", "c12_1", "c4_3"] },
+    { id:"c10_2", eraUnlock:10, tag:"社会",   name:"中心を作る地図",     desc:"地図は中立ではない。中心を置いた瞬間、周縁が生まれる。可視化は権力とも結びつく。", q:"その地図の中心は誰？" , terms:["中心", "地図", "平均", "代表"], refs:["c4_2", "c8_2", "c7_3"] },
+    { id:"c10_3", eraUnlock:10, tag:"プライバシー", name:"匿名化の限界", desc:"匿名化は完全ではない。残った癖が人を呼び戻す。守りたいのは名前ではなく生活。", q:"何を守るために、何を捨てる？" , terms:["匿名化", "プライバシー", "限界", "境界"], refs:["c8_2", "c8_3", "c10_1"] },
+
+    // e11
+    { id:"c11_1", eraUnlock:11, tag:"通信",   name:"遅延が意味を変える", desc:"遅延はノイズではなく構造。届くまでの沈黙が、情報の解釈を変える。", q:"遅れは欠陥？それとも手がかり？" , terms:["遅延", "時間", "意味", "レイテンシ"], refs:["c4_1", "c9_3", "c12_3"] },
+    { id:"c11_2", eraUnlock:11, tag:"解析",   name:"流れるデータ",       desc:"ストリーミング解析は“決めながら測る”。止まらない世界に、どこで区切りを入れるか。", q:"あなたは何で区切る？" , terms:["データ", "流れ", "版", "更新"], refs:["c9_1", "c12_1", "c7_1"] },
+    { id:"c11_3", eraUnlock:11, tag:"不確かさ", name:"エラー訂正の優しさ", desc:"誤りを前提にした設計は、現実に寄り添う。完璧を目指すより、壊れ方を整える。", q:"あなたの系は、どう壊れる？" , terms:["訂正", "エラー", "優しさ", "公開"], refs:["c10_1", "c7_2", "c12_2"] },
+
+    // e12
+    { id:"c12_1", eraUnlock:12, tag:"保存",   name:"メタデータの愛",     desc:"保存はファイルではなく文脈を残すこと。タグ、注釈、版管理が未来の読者を助ける。", q:"未来のあなたに、何を残す？" , terms:["メタデータ", "出自", "文脈", "愛"], refs:["c9_1", "c10_1", "c8_3"] },
+    { id:"c12_2", eraUnlock:12, tag:"研究文化", name:"負の結果の価値",   desc:"失敗は消耗品ではない。共有された失敗は共同体の時間を守る。", q:"書かなかった失敗は、誰が繰り返す？" , terms:["負の結果", "価値", "公開", "選択"], refs:["c4_2", "c5_3", "c10_1"] },
+    { id:"c12_3", eraUnlock:12, tag:"読解",   name:"再読という検証",     desc:"古い主張をいまの手つきで読み直す。再読は、過去の自分への実験。", q:"あなたは過去の自分をどう検証する？" , terms:["再読", "検証", "復習", "読み直し"], refs:["c7_1", "c11_3", "c0_2"] },
+
+    // e13
+    { id:"c13_1", eraUnlock:13, tag:"未来",   name:"未解決の権利",       desc:"未解決は恥ではない。未解決を“未解決のまま扱う技術”が、未来への入口を残す。", q:"あなたは未解決をどんな形で残せる？" , terms:["未解決", "権利", "余白", "保留"], refs:["c2_3", "c3_2", "c12_2"] },
+    { id:"c13_2", eraUnlock:13, tag:"哲学",   name:"触れない確信",       desc:"触れないものを触れないまま共有する。言葉の弱さを揃えると、共同体の強さになる。", q:"確信を“弱く”語れる？" , terms:["確信", "触れない", "距離", "沈黙"], refs:["c7_3", "c3_1", "c11_1"] },
+    { id:"c13_3", eraUnlock:13, tag:"継承",   name:"問いの継承",         desc:"答えは古びるが、問いは育つ。問いを渡すことが、次の研究の始まり。", q:"あなたは誰に問いを渡す？" , terms:["継承", "問い", "手渡し", "未来"], refs:["c5_3", "c12_3", "c7_2"] },
+  ];
+
+  // 断章（ログに流れる短い物理×哲学のテキスト）
+  const FRAGMENTS = [
+    // e0
+    { id:"f0_1", on:["milestone"], atPapers:3, title:"断章：零点", text:"三本の論文を書いた。まだ世界は変わらない。だが“測った”という事実だけが、あなたの中で不可逆になる。" },
+    { id:"f0_2", eraMin:0, eraMax:0, on:"equip", equipId:"notes", title:"断章：再現", text:"ノートを整えると、同じ実験が同じ結果に戻ってくる。世界が規則的なのか、あなたの手が規則的になったのか。両方だ。" },
+    { id:"f0_3", eraMin:0, eraMax:0, on:"paper", title:"断章：誤差棒", text:"誤差棒を伸ばすと、主張は弱くなる。しかし誠実さは増す。科学が強くなる瞬間は、たいてい“弱さ”を記録した瞬間だ。" },
+
+    // e1
+    { id:"f1_1", eraMin:1, eraMax:1, on:"equip", equipId:"instrument", title:"断章：ノイズ", text:"ノイズを減らすと、宇宙の声が聞こえるのではない。あなたの耳が、聞くべきものを選べるようになるだけだ。" },
+    { id:"f1_2", eraMin:1, eraMax:1, on:"paper", title:"断章：場", text:"場を導入すると、遠隔作用の不気味さは消える。だが代わりに、空間そのものが“物理的”になる。空っぽだったものが、主役に変わる。" },
+    { id:"f1_3", on:["milestone"], atPapers:10, title:"断章：線の束", text:"十本。あなたの理論は一本の線ではなく束になった。束は強い。だが束はほどけやすい。一本ずつ確かめる忍耐が必要だ。" },
+
+    // e2
+    { id:"f2_1", eraMin:2, eraMax:2, on:"paper", title:"断章：同期", text:"二つの時計を合わせた。合わせたのは時計ではない。“同時”という言葉の使い方だ。" },
+    { id:"f2_2", eraMin:2, eraMax:2, on:"equip", equipId:"clock", title:"断章：基準", text:"基準を作ると比較ができる。だが比較ができる世界は、基準の外側を切り落として作られている。" },
+    { id:"f2_3", on:["milestone"], atPapers:18, title:"断章：裂け目", text:"条件を満たした。次の章が開く。裂け目は恐ろしいが、裂け目がないと折り目もできない。折り目がないと本は閉じられない。" },
+
+    // e3
+    { id:"f3_1", eraMin:3, eraMax:3, on:"paper", title:"断章：確率に署名する", text:"結果は一つだが、説明は分布だ。あなたは確率に署名する。署名は責任であり、世界への敬意でもある。" },
+    { id:"f3_2", eraMin:3, eraMax:3, on:"paper", title:"断章：観測者", text:"観測者が特別なのではない。特別なのは“区別する操作”だ。区別があるところに、古典的な輪郭が立ち上がる。" },
+    { id:"f3_3", eraMin:3, eraMax:3, on:"equip", equipId:"detector", title:"断章：検出", text:"検出器を強化した。あなたは“出た”と言えるようになった。しかし“出た”とは何が出たのか。粒子か、装置の応答か、理論の期待か。" },
+    { id:"f3_4", on:["milestone"], atPapers:32, title:"断章：海", text:"確率の海に入った。泳ぎ方はもう覚えた。溺れないために必要なのは、陸（直観）ではなく、浮力（形式）だ。" },
+
+    // e4
+    { id:"f4_1", eraMin:4, eraMax:4, on:"equip", equipId:"observatory", title:"断章：遅延", text:"観測網が広がるほど、あなたは“昔”をたくさん手に入れる。だが昔は物語ではない。データとして届く。解釈が物語を作る。" },
+    { id:"f4_2", eraMin:4, eraMax:4, on:"paper", title:"断章：宇宙の偏り", text:"宇宙は公平ではない。見えるものは見えるようにできている。あなたは偏りと戦うことで、ようやく普遍に触れる。" },
+    { id:"f4_3", on:["milestone"], atPapers:52, title:"断章：窓", text:"窓が開いた。窓から見えるのは外の世界だけではない。窓枠の形＝装置と理論が、見え方を決める。" },
+
+    // e5
+    { id:"f5_1", eraMin:5, eraMax:5, on:"equip", equipId:"accelerator", title:"断章：人類サイズ", text:"大型装置は、個人の夢を共同体の工学に変換する。真理は、もはや一人の胸に収まらない。" },
+    { id:"f5_2", eraMin:5, eraMax:5, on:"paper", title:"断章：統計の暴風", text:"シグナルは弱い。統計が強い。あなたは“見たいもの”ではなく“言えること”だけを言う訓練をする。" },
+    { id:"f5_3", on:["milestone"], atPapers:78, title:"断章：合意", text:"条件を満たした。次の章へ。合意は終点ではない。合意はスタートラインだ。ここから先は、空白と向き合う。 " },
+
+    // e6
+    { id:"f6_1", eraMin:6, eraMax:6, on:"equip", equipId:"darklab", title:"断章：空白の部門", text:"暗黒部門を作った。あなたは“ないもの”を探す。探しているのは物質ではない。説明の余白だ。" },
+    { id:"f6_2", eraMin:6, eraMax:6, on:"paper", title:"断章：名付ける前", text:"名前は強い。名付けると、探索は収束する。だが収束は早すぎると、世界の別の可能性を殺す。" },
+    { id:"f6_3", on:["milestone"], atPapers:110, title:"断章：余白の輪郭", text:"条件を超えた。あなたは答えに到達したのではない。問いの輪郭を、さらに精密に描ける地点に来ただけだ。" },
+    // ===== 青春ライン：朔と澪（メインストーリー断章） =====
+    { id:"r_1", on:["milestone"], atPapers:1, title:"断章：余白の名", text:"一つ目の論文。ページの端に、澪が小さく丸を付けた。外れた数字の横で、言い換えられない沈黙が増えた。朔はその丸を消さず、次のページを開いた。" },
+    { id:"r_2", on:["milestone"], atPapers:8, title:"断章：見えない流れ", text:"八本目。針が震える夜が増えた。会話は短く、余白は長い。同じ揺れの原因を、二人は違う言葉で呼んでいた。" },
+    { id:"r_3", on:["milestone"], atPapers:17, title:"断章：合図", text:"十七本目。時計を信じるのをやめて、合図を信じることにした。「同じ」は自然にあるものじゃなく、そっと合わせていくものだ。" },
+    { id:"r_4", on:["milestone"], atPapers:31, title:"断章：確率のまま", text:"三十一本目。決めないまま積み上がるものがある。曖昧さは逃げではなく、壊さないための形だと分かってきた。" },
+    { id:"r_5", on:["milestone"], atPapers:50, title:"断章：遅れて届く", text:"五十本目。離れた時間が長くなるほど、届く言葉は遅れて濃くなる。過去の夜が、いまの手元を静かに照らす。" },
+    { id:"r_6", on:["milestone"], atPapers:76, title:"断章：共同著者", text:"七十六本目。名前の列が長くなっても、二人の印は近い。互いの推測を静かに確かめ合えることが、ひそかな支えになった。" },
+    { id:"r_7", on:["milestone"], atPapers:108, title:"断章：余白の誓い", text:"百八本目。まだ形にならない。けれど澪は、空欄のまま置く勇気を選んだ。朔もそれに従う。余白は、ただの空白ではなくなる。" },
+
+
+    // ===== 章到達断章（chapter） =====
+    { id:"ch_1", eraMin:1, eraMax:1, on:"chapter", title:"章到達：見えない流れの輪郭", text:"針の震えに名前が付いた。廊下で澪が言いかけた言葉を、朔は飲み込んだままノートに写す。見えない流れは、触れた手にだけ残る。" },
+    { id:"ch_2", eraMin:2, eraMax:2, on:"chapter", title:"章到達：同時という幻想",         text:"同時という言葉が揺れる。二人の歩幅は合わないのに、角を曲がるタイミングだけは同じだった。" },
+    { id:"ch_3", eraMin:3, eraMax:3, on:"chapter", title:"章到達：確率の海",               text:"確率の海に足を入れる。澪は“決めない”を選び、朔はそれを支える式を書く。沈まないための浮力は、たいてい紙の上にある。" },
+    { id:"ch_4", eraMin:4, eraMax:4, on:"chapter", title:"章到達：遠い光の手紙",           text:"遠い光は遅れて届く。遅れは欠陥ではなく距離の証拠。朔はメッセージを読み、澪は余白に返事を書く。" },
+    { id:"ch_5", eraMin:5, eraMax:5, on:"chapter", title:"章到達：人類サイズの実験",       text:"正しさは一人の腕では保てない。合意の手続きが、心の距離の測り方にも似てくる。頼ることは、弱さではなく設計だ。" },
+    { id:"ch_6", eraMin:6, eraMax:6, on:"chapter", title:"章到達：暗黒の余白",             text:"見えないものを“ある”と言う前に、見えないまま扱う技術が必要になる。澪は空欄を残し、朔はその空欄に耐える。" },
+    { id:"ch_7", eraMin:7, eraMax:7, on:"chapter", title:"章到達：静かな校正",             text:"誤りを消すのではなく、誤りの形を整える。澪の赤字は優しく、朔の線は細くなる。静けさは、逃げではなく精度だ。" },
+    { id:"ch_8", eraMin:8, eraMax:8, on:"chapter", title:"章到達：線の外側",               text:"境界を引くことは、外を作ること。二人は外を怖がらず、外へ歩く。線の外には、別の測り方がある。" },
+    { id:"ch_9", eraMin:9, eraMax:9, on:"chapter", title:"章到達：同じ顔の違い",           text:"複製は安心をくれるが、違いは必ず残る。残った違いが、あなたの署名になる。澪はその署名を見逃さない。" },
+    { id:"ch_10", eraMin:10, eraMax:10, on:"chapter", title:"章到達：窓のない地図",        text:"可視化が進むほど、見えなくしたものも増える。澪は隠す理由を問い、朔は開示のコストを計る。地図は中立ではない。" },
+    { id:"ch_11", eraMin:11, eraMax:11, on:"chapter", title:"章到達：遅れて届く波",         text:"遅延はノイズではなく構造。届くまでの沈黙が、意味を変える。言葉の間隔が、心の間隔と重なる夜がある。" },
+    { id:"ch_12", eraMin:12, eraMax:12, on:"chapter", title:"章到達：問いの保存",           text:"答えより先に、問いが残る。二人が残した付箋は、未来の誰かの入口になる。保存は冷たい技術じゃない。" },
+    { id:"ch_13", eraMin:13, eraMax:13, on:"chapter", title:"章到達：触れない確信",         text:"手で掴めないものほど、手つきが問われる。朔は澪の横で、息を合わせるでもなく、外さない。触れない確信は、同じ所を残すことで伝わる。" },
+
+    // ===== 後半章：断章（e7–e13） =====
+    { id:"f7_1", eraMin:7, eraMax:7, on:"equip", title:"断章：減らない誤り",       text:"設備は増えるのに、誤りは減らない。けれど“減らない”を認めると、誤りは暴れなくなる。" , terms:["再現性", "誤り", "系統誤差"] },
+    { id:"f7_2", eraMin:7, eraMax:7, on:"paper", title:"断章：差分だけを書く",     text:"差分だけを書け。全部を書き直すな。あなたが変えたのは世界ではなく、読み方だ。" , terms:["執筆", "差分", "読者"] },
+    { id:"f7_3", eraMin:7, eraMax:7, on:"paper", title:"断章：眠らない注釈",       text:"校正刷りの紙は薄い。薄い紙ほど、赤字が刺さる。刺さった分だけ、文章は呼吸する。" , terms:["校正", "執筆", "赤字"] },
+    { id:"f7_4", eraMin:7, eraMax:7, on:"paper", title:"断章：再現の音", text:"同じ条件をもう一度。結果は完全には重ならない。けれど、ズレ方が似ているとき、世界は“同じ歌”を口ずさむ。", terms:["再現性", "再演", "プロトコル"] },
+    { id:"f7_5", eraMin:7, eraMax:7, on:"equip", title:"断章：手順書の余白", text:"手順書を作ると、人は迷わなくなる。だが余白を消すと、発見も消える。澪は余白だけ残して、手順を短くした。", terms:["プロトコル", "再現性", "執筆"] },
+    { id:"f7_6", eraMin:7, eraMax:7, on:"paper", title:"断章：温度計", text:"確信は数字ではなく温度だ。熱い日は言葉が速い。冷える日は手が丁寧になる。あなたは冷えた手で、次の一行を書く。", terms:["統計", "確信", "温度"] },
+    { id:"f7_7", eraMin:7, eraMax:7, on:"chapter", title:"章断章：背表紙の擦れ", text:"次の章へ。ページの背表紙が少し擦れている。読まれた回数だけ、あなたの世界は硬くなる。硬くなるほど、柔らかい余白が必要になる。", terms:["再現性", "執筆"] },
+
+
+    { id:"f8_1", eraMin:8, eraMax:8, on:"equip", title:"断章：境界条件",           text:"境界条件を変えるたび、結果は違う。違いは裏切りではなく、世界が複数の顔を持つ証拠。" , terms:["境界", "境界条件", "仮定"] },
+    { id:"f8_2", eraMin:8, eraMax:8, on:"paper", title:"断章：外挿は甘い",         text:"外挿は甘い。遠くの点ほど、あなたの願いが入り込む。だからこそ仮定を明るみに出せ。" , terms:["外挿", "モデル", "予測"] },
+    { id:"f8_3", eraMin:8, eraMax:8, on:"paper", title:"断章：線の外の点",         text:"線の外に落ちたデータを、あなたは捨てるか、拾うか。拾うなら、拾い方の理由も書け。" , terms:["外挿", "線の外", "不確かさ"] },
+    { id:"f8_4", eraMin:8, eraMax:8, on:"equip", title:"断章：仮定の柵", text:"境界条件を書き足すと、解は素直になる。素直になった分だけ、柵の外の風が気になる。柵は守りでもあり、捨てる宣言でもある。", terms:["境界", "境界条件", "仮定"] },
+    { id:"f8_5", eraMin:8, eraMax:8, on:"paper", title:"断章：外挿の手紙", text:"まだ測っていない点へ、手紙を書く。届く保証はない。けれど宛先を書かなければ、世界は返事を返せない。", terms:["外挿", "予測", "モデル"] },
+    { id:"f8_6", eraMin:8, eraMax:8, on:"paper", title:"断章：捨てた点の影", text:"捨てたデータは消えない。紙から消えても、あなたの指に残る。澪は“捨てた理由”を一行だけ残し、影を影のままにした。", terms:["倫理", "透明性", "削除"] },
+    { id:"f8_7", eraMin:8, eraMax:8, on:"chapter", title:"章断章：遠い点", text:"次の章へ。遠い点ほど魅力的だ。近い点を丁寧に歩いた者だけが、遠さを扱える。", terms:["外挿", "境界", "倫理"] },
+
+
+    { id:"f9_1", eraMin:9, eraMax:9, on:"equip", title:"断章：再現されない癖",     text:"複製された手順の中で、あなたの癖だけが再現されない。癖は隠せても、いずれ露わになる。" , terms:["再現性", "データ", "癖"] },
+    { id:"f9_2", eraMin:9, eraMax:9, on:"paper", title:"断章：一致を疑う",         text:"同じ結果が出た時ほど疑え。あなたが再現したのは、自然か、それとも手続きか。" , terms:["検証", "同一性", "一致"] },
+    { id:"f9_3", eraMin:9, eraMax:9, on:"paper", title:"断章：遅さの必要",         text:"コピーは速い。だが“速さ”が増えるほど、確認のための遅さが必要になる。" , terms:["遅延", "検証", "時間"] },
+    { id:"f9_4", eraMin:9, eraMax:9, on:"equip", title:"断章：版の海", text:"データは一つではない。版が増えるほど、結論は揺れやすくなる。揺れを恐れずに、版の番号を先に書いた。", terms:["データ", "バージョン", "再現性"] },
+    { id:"f9_5", eraMin:9, eraMax:9, on:"paper", title:"断章：同一性の刃", text:"同じ結果に見えるものを、別々に切ってみる。切り口が違えば原因も違う。検証は一致を祝う前に、刃を研ぐ作業だ。", terms:["検証", "同一性", "原因"] },
+    { id:"f9_6", eraMin:9, eraMax:9, on:"paper", title:"断章：待つ実験", text:"遅い確認は苛立たしい。だが遅さが、誤解を燃やし尽くす。燃え残った主張だけが、次の章に持ち込める。", terms:["遅延", "検証", "透明性"] },
+    { id:"f9_7", eraMin:9, eraMax:9, on:"chapter", title:"章断章：共有の影", text:"次の章へ。共有は光を増やす。影も増える。名前の影は、いつも誰かの足元に落ちる。", terms:["共有", "功績", "遅延"] },
+
+
+    { id:"f10_1", eraMin:10, eraMax:10, on:"equip", title:"断章：見える責任",      text:"透明にしたつもりのグラフが、誰かを傷つけることがある。見えるようにするとは、責任を増やすこと。" , terms:["透明性", "責任", "開示"] },
+    { id:"f10_2", eraMin:10, eraMax:10, on:"paper", title:"断章：中心の匂い",      text:"地図には中心がある。中心を作った瞬間、周縁も生まれる。あなたはどこに立って描いた？" , terms:["中心", "地図", "平均"] },
+    { id:"f10_3", eraMin:10, eraMax:10, on:"paper", title:"断章：匿名化は魔法じゃない", text:"匿名化は魔法じゃない。残った微かな癖が、人を呼び戻す。守りたいのは名前ではなく生活だ。" , terms:["匿名化", "倫理", "限界"] },
+    { id:"f10_4", eraMin:10, eraMax:10, on:"equip", title:"断章：開示の窓", text:"説明を増やすと、誤解は減る。だが説明が多すぎると、読む前に諦められる。窓は大きくしすぎると壁になる。", terms:["透明性", "開示", "説明責任"] },
+    { id:"f10_5", eraMin:10, eraMax:10, on:"paper", title:"断章：メタデータ", text:"数字の横に、採取した手の形を書く。誰が、どこで、どう集めたか。情報は増えるが、嘘をつきにくくなる。", terms:["メタデータ", "透明性", "データ"] },
+    { id:"f10_6", eraMin:10, eraMax:10, on:"paper", title:"断章：匿名の境界", text:"匿名化は霧だ。霧は守るが、輪郭も奪う。守ったものと失ったものを同じ紙に書けたとき、霧は道になる。", terms:["匿名化", "倫理", "境界"] },
+    { id:"f10_7", eraMin:10, eraMax:10, on:"chapter", title:"章断章：中心の椅子", text:"次の章へ。中心に椅子を置くと、人はそこに座りたがる。座りたがる癖を、データは静かに映す。", terms:["中心", "透明性", "倫理"] },
+
+
+    { id:"f11_1", eraMin:11, eraMax:11, on:"equip", title:"断章：仮の翻訳",        text:"遅延補正をかけても、波は同じ顔をしない。補正は真実ではなく、仮の翻訳。" , terms:["翻訳", "仮定", "モデル"] },
+    { id:"f11_2", eraMin:11, eraMax:11, on:"paper", title:"断章：沈黙の扱い",      text:"通信の沈黙をデータにするな。沈黙はまず、誰かの生活だ。" , terms:["沈黙", "欠測", "統計"] },
+    { id:"f11_3", eraMin:11, eraMax:11, on:"paper", title:"断章：訂正の優しさ",    text:"エラー訂正は、間違いを前提にした優しさだ。完璧より、壊れ方を整える。" , terms:["訂正", "透明性", "優しさ"] },
+    { id:"f11_4", eraMin:11, eraMax:11, on:"equip", title:"断章：辞書の余白", text:"別の分野の言葉で説明しようとすると、意味がズレる。ズレを隠すより、余白に書く。澪はズレの例を一つだけ残した。", terms:["翻訳", "余白", "再現性"] },
+    { id:"f11_5", eraMin:11, eraMax:11, on:"paper", title:"断章：沈黙の列", text:"欠けた値は沈黙だ。沈黙を埋めると、嘘が増える。沈黙を並べると、世界の癖が見える。あなたは沈黙の列に名前を付けた。", terms:["沈黙", "欠測", "統計"] },
+    { id:"f11_6", eraMin:11, eraMax:11, on:"paper", title:"断章：訂正文", text:"訂正を書くのは痛い。けれど痛みの分だけ、読者は信じやすくなる。優しさは、正しさを後から足す勇気だ。", terms:["訂正", "透明性", "優しさ"] },
+    { id:"f11_7", eraMin:11, eraMax:11, on:"chapter", title:"章断章：遅れて変わる意味", text:"次の章へ。時間が経つほど、同じ一文が別の顔をする。あなたは顔の変化を恐れず、更新日を書いた。", terms:["遅延", "訂正", "流れるデータ"] },
+
+
+    { id:"f12_1", eraMin:12, eraMax:12, on:"equip", title:"断章：冷たい保存",      text:"保存は冷たい技術に見える。だが温度は、タグや注釈の一つひとつに宿る。" , terms:["保存", "アーカイブ", "冷たさ"] },
+    { id:"f12_2", eraMin:12, eraMax:12, on:"paper", title:"断章：負の結果",        text:"負の結果を書け。失敗は消耗品じゃない。次の人の時間を守る盾だ。" , terms:["負の結果", "公開", "価値"] },
+    { id:"f12_3", eraMin:12, eraMax:12, on:"paper", title:"断章：再読は実験",      text:"再読は実験だ。昔の自分の主張を、いまの自分が検証する。" , terms:["再読", "検証", "再現性"] },
+    { id:"f12_4", eraMin:12, eraMax:12, on:"equip", title:"断章：アーカイブの鍵", text:"保存は冷たい。冷たいから長持ちする。鍵を掛けすぎると、未来が開けない。鍵の所在だけは、必ず残した。", terms:["保存", "継承", "アーカイブ"] },
+    { id:"f12_5", eraMin:12, eraMax:12, on:"paper", title:"断章：負の地図", text:"うまくいかなかった道を地図に描く。地図は勝利の記録ではなく、迷わないための共有だ。迷いの跡ほど価値がある。", terms:["負の結果", "共有", "透明性"] },
+    { id:"f12_6", eraMin:12, eraMax:12, on:"paper", title:"断章：再読の温度", text:"読み返すたび、仮説の温度が変わる。熱い日に書いた断言を、冷えた日にほどく。ほどけた分だけ、次の人が結べる。", terms:["再読", "検証", "継承"] },
+    { id:"f12_7", eraMin:12, eraMax:12, on:"chapter", title:"章断章：冷たい棚", text:"次の章へ。棚に置かれた紙は冷たい。冷たさは孤独ではない。未来の手に渡るまで、形を保つための温度だ。", terms:["保存", "再読", "負の結果"] },
+
+
+    { id:"f13_1", eraMin:13, eraMax:13, on:"equip", title:"断章：装置がなくても",  text:"新しい装置がなくても、手つきは更新できる。更新は、問いの持ち方に起こる。" , terms:["継承", "装置", "手触り"] },
+    { id:"f13_2", eraMin:13, eraMax:13, on:"paper", title:"断章：弱さを揃える",    text:"触れない確信を、触れないまま共有する。言葉は弱いが、弱さを揃えると強くなる。" , terms:["弱さ", "透明性", "共有"] },
+    { id:"f13_3", eraMin:13, eraMax:13, on:"paper", title:"断章：書かない勇気",    text:"朝の光が強くなる前に、風が一度だけ吹いた。書かないまま残す勇気が、次の章になる。" , terms:["書かない", "未解決", "勇気"] },
+    { id:"f13_4", eraMin:13, eraMax:13, on:"equip", title:"断章：最後の手触り", text:"装置がなくても、手触りは残る。残るのは結果ではなく、問いの持ち方。あなたは持ち方だけを、次の机に置いた。", terms:["継承", "問い", "手触り"] },
+    { id:"f13_5", eraMin:13, eraMax:13, on:"paper", title:"断章：弱さの共有", text:"強さより弱さを揃える。弱さが揃うと、比較ができる。比較できると、助けが届く。あなたは弱さの表を先に出した。", terms:["弱さ", "透明性", "共有"] },
+    { id:"f13_6", eraMin:13, eraMax:13, on:"paper", title:"断章：未完の引継ぎ", text:"全部を終わらせない。終わらせると、次の人が始められない。未完は無責任ではなく、継承の形だと理解した。", terms:["継承", "未解決", "問い"] },
+    { id:"f13_7", eraMin:13, eraMax:13, on:"chapter", title:"章断章：問いの手渡し", text:"次の章へ。あなたが渡すのは答えではない。答えに触れないまま、問いを温める手つきだ。", terms:["問いの継承", "未解決", "確信"] },
+
+
+    // ===== 青春ライン：朔と澪（後半の断章） =====
+    { id:"r_8",  on:["milestone"], atPapers:140, title:"断章：赤字の色",           text:"百四十本目。澪の赤字は派手じゃない。けれど朔は、その一線で自分の癖がどこに出るかを知った。" },
+    { id:"r_9",  on:["milestone"], atPapers:175, title:"断章：境界の庭",           text:"百七十五本目。線の外へ出るのが怖い夜、澪は「庭は柵で守るんじゃなく、歩いて覚える」と言った。" },
+    { id:"r_10", on:["milestone"], atPapers:215, title:"断章：同じ顔",             text:"二百十五本目。コピーが増えるほど、二人の沈黙だけがオリジナルになる。" },
+    { id:"r_11", on:["milestone"], atPapers:260, title:"断章：窓のない地図",       text:"二百六十本目。見せない部分を決める時、朔は澪の目線を追った。隠すことにも責任がある。" },
+    { id:"r_12", on:["milestone"], atPapers:310, title:"断章：遅延",               text:"三百十本目。返事が遅れた日ほど、届いた言葉は濃かった。距離は減らない。濃度だけが増える。" },
+    { id:"r_13", on:["milestone"], atPapers:365, title:"断章：付箋",               text:"三百六十五本目。ページの端に貼った付箋が、ふと指に触れる。澪の字は薄いのに、消えない。" },
+    { id:"r_14", on:["milestone"], atPapers:430, title:"断章：触れない確信",       text:"四百三十本目。二人は何も言わないまま、同じ行に下線を引いた。触れない確信は、同じ所を残すことで伝わる。" },
+  ];
+
+  // 設備（自動生産）
+  // unlockEra: 何章から買えるか（ERASのindex）
+  const EQUIP = [
+    { id:"assistant",   name:"研究助手",          desc:"手作業の計測を分担。序盤の土台。", base: 0.25, cost: 12,  unlockEra:0 },
+    { id:"notes",       name:"実験ノート体系化",  desc:"再現性が上がり、ロスが減る。",     base: 0.45, cost: 28,  unlockEra:0 },
+    { id:"instrument",  name:"精密測定器",        desc:"ノイズが減り、データが整う。",       base: 0.8,  cost: 65,  unlockEra:0 },
+
+    { id:"lab",         name:"実験室拡張",        desc:"回路・磁場・材料。試行回数が増える。", base: 1.4,  cost: 160, unlockEra:1 },
+    { id:"analysis",    name:"解析班",            desc:"式と統計で結果を固める。",             base: 2.4,  cost: 380, unlockEra:1 },
+
+    { id:"clock",       name:"時間標準の整備",    desc:"精度が上がり、比較が可能になる。",     base: 4.2,  cost: 900, unlockEra:2 },
+    { id:"collab",      name:"共同研究ネットワーク",desc:"分業と共有で速度が跳ねる。",         base: 6.5,  cost: 1800, unlockEra:2 },
+
+    { id:"vacuum",      name:"真空技術",          desc:"微細な現象が見えるようになる。",       base: 9.0,  cost: 3200, unlockEra:3 },
+    { id:"detector",    name:"検出器",            desc:"「出た」を確実に取るための眼。",       base: 12.5, cost: 5200, unlockEra:3 },
+
+    { id:"compute",     name:"計算機",            desc:"計算と探索が一気に自動化。",           base: 18.0, cost: 9800, unlockEra:4 },
+    { id:"observatory", name:"観測網",            desc:"遠い信号を拾うための面積。",           base: 24.0, cost: 15000,unlockEra:4 },
+
+    { id:"accelerator", name:"大型装置",          desc:"巨視的な資源を微視へ注ぐ。",           base: 32.0, cost: 23000,unlockEra:5 },
+    { id:"pipeline",    name:"データパイプライン",desc:"処理遅延が減り、継続性が増す。",       base: 42.0, cost: 36000,unlockEra:5 },
+
+    { id:"darklab",     name:"暗黒部門",          desc:"空白を測るための専任チーム。",         base: 58.0, cost: 52000,unlockEra:6 },
+    { id:"frontier",    name:"次世代観測装置",    desc:"まだ名もない観測の形。",               base: 80.0, cost: 78000,unlockEra:6 },
+  ];
+
+  // 洞察（永続）
+  const UPGRADES = [
+    { id:"u_click",   name:"手つきの改善", desc:"クリックの研究量 +20%/Lv", cost: 2, max: 30,
+      apply: (s) => 1 + 0.20 * s.upg.u_click },
+    { id:"u_lab",     name:"ラボ効率",     desc:"自動出力 +15%/Lv",         cost: 2, max: 30,
+      apply: (s) => 1 + 0.15 * s.upg.u_lab },
+    { id:"u_cost",    name:"調達の最適化", desc:"設備コスト -4%/Lv",          cost: 2, max: 20,
+      apply: (s) => Math.max(0.25, 1 - 0.04 * s.upg.u_cost) },
+    { id:"u_paper",   name:"論文化の型",   desc:"論文コスト -5%/Lv",          cost: 3, max: 20,
+      apply: (s) => Math.max(0.35, 1 - 0.05 * s.upg.u_paper) },
+    { id:"u_offline", name:"現場の継続",   desc:"オフライン上限 +30%/Lv",     cost: 2, max: 20,
+      apply: (s) => 1 + 0.30 * s.upg.u_offline },
+  ];
+
+  // =========================
+  // State
+  // =========================
+  const DEFAULT = () => ({
+    ver: 1,
+    data: 0,
+    papers: 0,
+    insight: 0,
+    era: 0, // ERAS index
+    equip: {}, // qty
+    upg: { u_click:0, u_lab:0, u_cost:0, u_paper:0, u_offline:0 },
+    storySeen: {}, // beat id
+    storyArchive: [],
+    storyArchiveSeen: {},
+    storyArchiveUi: { era: "all", q: "" },
+    storyArchiveBackfilled: false,
+    log: [],
+    totalPapers: 0,
+    lastTickAt: Date.now(),
+    tab: "lab",
+    termFocus: null,
+    termBiasLeft: 0,
+    termLastCard: null,
+    termFocusAt: 0
+  });
+
+  let S = DEFAULT();
+
+  // =========================
+  // Utils
+  // =========================
+  const $ = (q) => document.querySelector(q);
+  const now = () => Date.now();
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const fmt = (n) => {
+    n = Number(n)||0;
+    if (n < 1000) return n.toFixed(n < 100 ? 1 : 0);
+    const units = ["K","M","B","T","Qa"];
+    let u = -1;
+    while (n >= 1000 && u < units.length-1) { n/=1000; u++; }
+    return n.toFixed(n < 10 ? 2 : n < 100 ? 1 : 0) + units[u];
+  };
+  const fmtInt = (n) => Math.floor(Number(n)||0).toLocaleString("ja-JP");
+
+  function toast(html){
+    $("#toastMsg").innerHTML = html;
+    $("#toast").style.display = "";
+  }
+  $("#toastClose").onclick = () => $("#toast").style.display = "none";
+
+  // =========================
+  // Economy
+  // =========================
+  function clickMult(){
+    const u = UPGRADES.find(x => x.id === "u_click");
+    return u.apply(S);
+  }
+  function labMult(){
+    const u = UPGRADES.find(x => x.id === "u_lab");
+    return u.apply(S);
+  }
+  function costMult(){
+    const u = UPGRADES.find(x => x.id === "u_cost");
+    return u.apply(S);
+  }
+  function paperMult(){
+    const u = UPGRADES.find(x => x.id === "u_paper");
+    return u.apply(S);
+  }
+  function offlineMult(){
+    const u = UPGRADES.find(x => x.id === "u_offline");
+    return u.apply(S);
+  }
+
+  function dps(){
+    let sum = 0;
+    for (const e of EQUIP){
+      const q = S.equip[e.id] || 0;
+      if (q <= 0) continue;
+      sum += q * e.base;
+    }
+    return sum * labMult();
+  }
+
+  function equipCost(e){
+    const q = S.equip[e.id] || 0;
+    const raw = e.cost * Math.pow(BAL.equipCostPow, q);
+    return raw * costMult();
+  }
+
+  function paperCost(){
+    const raw = BAL.paperCostBase * Math.pow(1 + (S.papers||0), BAL.paperCostPow);
+    return raw * paperMult();
+  }
+
+  
+  // ラボUIの動的更新（データ増加でボタン状態がズレないように）
+  function updateLabUI(){
+    if (S.tab !== "lab") return;
+
+    const btnPaper = $("#btnPaper");
+    if (btnPaper){
+      const c = paperCost();
+      btnPaper.disabled = (S.data < c);
+      btnPaper.textContent = `論文を書く（コスト ${fmt(c)}）`;
+    }
+
+    for (const e of EQUIP){
+      if (e.unlockEra > S.era) continue;
+      const b = $("#buy_" + e.id);
+      if (!b) continue;
+      const c = equipCost(e);
+      b.disabled = (S.data < c);
+    }
+  }
+// =========================
+  // Story progression
+  // =========================
+  function currentEra(){ return ERAS[clamp(S.era, 0, ERAS.length-1)]; }
+  function canNextEra(){
+    const next = ERAS[S.era + 1];
+    if (!next) return false;
+    return (S.totalPapers || 0) >= next.reqPapers;
+  }
+  function nextEraReqText(){
+    const next = ERAS[S.era + 1];
+    if (!next) return "最終章です。";
+    const need = Math.max(0, next.reqPapers - (S.totalPapers||0));
+    return `次の章条件：論文 ${next.reqPapers}（あと ${need}）`;
+  }
+
+  function log(title, body){
+    S.log.unshift({ t: title, b: body, at: now() });
+    if (S.log.length > BAL.logKeep) S.log.length = BAL.logKeep;
+  }
+
+  function addFragment(f){
+    if (!f || !f.id) return;
+    S.storySeen = S.storySeen || {};
+    if (S.storySeen[f.id]) return;
+    S.storySeen[f.id] = true;
+    log(f.title || "断章", f.text || "");
+    archivePush({ kind:"fragment", id:f.id, era: clamp(S.era||0,0,ERAS.length-1), title:(f.title||"断章"), text:(f.text||""), at: now(), meta:{ on:f.on||null, atPapers: (f.atPapers!=null? f.atPapers:null), equipId:(f.equipId||null) } });
+
+    // 用語フォーカスの寿命（断章が出た回数で減る）
+    if (S.termBiasLeft && S.termBiasLeft > 0){
+      S.termBiasLeft -= 1;
+      if (S.termBiasLeft <= 0) clearTermFocus();
+    }
+  }
+
+// =========================
+// Story Archive (re-read past story)
+// =========================
+function inferEraByPapers(p){
+  p = p || 0;
+  let idx = 0;
+  for (let i=0; i<ERAS.length; i++){
+    if ((ERAS[i].reqPapers || 0) <= p) idx = i;
+  }
+  return idx;
+}
+function inferEraForFragment(f){
+  if (!f) return clamp(S.era||0,0,ERAS.length-1);
+  if (f.eraMin != null) return f.eraMin;
+  if (f.atPapers != null) return inferEraByPapers(f.atPapers);
+  return clamp(S.era||0,0,ERAS.length-1);
+}
+function ensureStoryArchive(){
+  if (!Array.isArray(S.storyArchive)) S.storyArchive = [];
+  if (!S.storyArchiveSeen || typeof S.storyArchiveSeen !== "object") S.storyArchiveSeen = {};
+  if (!S.storyArchiveUi || typeof S.storyArchiveUi !== "object") S.storyArchiveUi = { era:"all", q:"" };
+
+  // rebuild seen index
+  for (const it of S.storyArchive){
+    if (it && it.id) S.storyArchiveSeen[it.id] = true;
+  }
+
+  // backfill (old saves): storySeen -> storyArchive
+  if (!S.storyArchiveBackfilled){
+    // prevent recursion (archivePush calls ensureStoryArchive)
+    S.storyArchiveBackfilled = true;
+    const ids = (S.storySeen && typeof S.storySeen === "object") ? Object.keys(S.storySeen).filter(k => S.storySeen[k]) : [];
+    if (ids.length){
+      const items = [];
+      for (const id of ids){
+        if (S.storyArchiveSeen[id]) continue;
+        const f = FRAGMENTS.find(x => x.id === id);
+        if (!f) continue;
+        items.push({ f, era: inferEraForFragment(f) });
+      }
+      items.sort((a,b) => ((a.f.atPapers||0) - (b.f.atPapers||0)) || (a.f.id||"").localeCompare(b.f.id||""));
+      for (const it of items){
+        archivePush({
+          kind:"fragment",
+          id: it.f.id,
+          era: it.era,
+          title: it.f.title || "断章",
+          text: it.f.text || "",
+          at: 0,
+          meta: { backfill:true, atPapers: (it.f.atPapers!=null? it.f.atPapers:null), equipId:(it.f.equipId||null) }
+        }, true);
+      }
+    }
+  }
+}
+function archivePush(entry, silent){
+  if (!entry) return;
+  ensureStoryArchive();
+  const id = entry.id || `${entry.kind||"story"}:${now()}:${Math.random().toString(16).slice(2)}`;
+  if (S.storyArchiveSeen[id]) return;
+  entry.id = id;
+  if (entry.era == null) entry.era = clamp(S.era||0,0,ERAS.length-1);
+  if (entry.at == null) entry.at = now();
+  S.storyArchiveSeen[id] = true;
+  S.storyArchive.push(entry);
+  // 上限（暴走防止）
+  if (S.storyArchive.length > 2000) S.storyArchive.shift();
+  if (!silent) save();
+}
+function fmtTime(at){
+  if (!at) return "—";
+  const d = new Date(at);
+  return d.toLocaleString("ja-JP",{month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit"});
+}
+
+function openStoryArchive(targetEra){
+  ensureStoryArchive();
+  const modal = $("#storyArchiveModal");
+  modal.style.display = "";
+
+  // select options
+  const sel = $("#storyArchiveEra");
+  sel.innerHTML = "";
+  const oAll = document.createElement("option");
+  oAll.value = "all";
+  oAll.textContent = "全章";
+  sel.appendChild(oAll);
+  for (let i=0; i<= (S.era||0); i++){
+    const e = ERAS[i];
+    const o = document.createElement("option");
+    o.value = String(i);
+    o.textContent = `第${i+1}章：${e.title}`;
+    sel.appendChild(o);
+  }
+
+  const eraVal = (targetEra == null) ? (S.storyArchiveUi.era || "all") : (targetEra === "all" ? "all" : String(targetEra));
+  sel.value = eraVal;
+
+  const q = $("#storyArchiveSearch");
+  q.value = (targetEra == null) ? (S.storyArchiveUi.q || "") : "";
+
+  renderStoryArchiveModal();
+  save();
+}
+function closeStoryArchive(){
+  $("#storyArchiveModal").style.display = "none";
+}
+function renderStoryArchiveModal(){
+  ensureStoryArchive();
+  const sel = $("#storyArchiveEra");
+  const qEl = $("#storyArchiveSearch");
+  const eraVal = sel.value || "all";
+  const q = (qEl.value || "").trim();
+
+  S.storyArchiveUi.era = eraVal;
+  S.storyArchiveUi.q = q;
+
+  const body = $("#storyArchiveBody");
+  body.innerHTML = "";
+
+  const eras = [];
+  if (eraVal === "all"){
+    for (let i=0; i<= (S.era||0); i++) eras.push(i);
+  } else {
+    const n = parseInt(eraVal, 10);
+    if (!Number.isNaN(n)) eras.push(n);
+  }
+
+  for (const i of eras){
+    const e = ERAS[i];
+    if (!e) continue;
+
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = `
+      <div class="name">${e.name}</div>
+      <div class="desc">章「${e.title}」<br><span class="muted">条件：論文 ${e.reqPapers}</span></div>
+    `;
+
+    // era main story
+    const d1 = document.createElement("details");
+    d1.className = "storyDetails";
+    const s1 = document.createElement("summary");
+    s1.textContent = "章本文を読む";
+    const t1 = document.createElement("div");
+    t1.className = "storyText";
+    t1.style.marginTop = "8px";
+    t1.textContent = e.text || "";
+    d1.appendChild(s1);
+    d1.appendChild(t1);
+    card.appendChild(d1);
+
+    // fragments for this era
+    let items = (S.storyArchive || []).filter(x => x && x.era === i);
+    if (q){
+      const qq = q.toLowerCase();
+      items = items.filter(x => (x.title||"").toLowerCase().includes(qq) || (x.text||"").toLowerCase().includes(qq));
+    }
+    items = items.slice().sort((a,b) => ((a.at||0) - (b.at||0)));
+
+    const d2 = document.createElement("details");
+    d2.className = "storyDetails";
+    const s2 = document.createElement("summary");
+    s2.textContent = `この章の断章（${items.length}）を読む`;
+    d2.appendChild(s2);
+
+    const box = document.createElement("div");
+    box.style.marginTop = "8px";
+
+    if (items.length === 0){
+      const p = document.createElement("div");
+      p.className = "muted";
+      p.textContent = "この章で出現した断章はまだありません。";
+      box.appendChild(p);
+    } else {
+      for (const it of items){
+        const row = document.createElement("div");
+        row.className = "logItem";
+        const time = it.at ? fmtTime(it.at) : "—";
+        const tag = it.meta && it.meta.backfill ? "（過去の記録）" : "";
+        const ttl = (it.kind === "chapter") ? (it.title || "章イベント") : (it.title || "断章");
+        const bodyText = it.text || "";
+        row.innerHTML = `<div class="t">${ttl} <span class="muted">・${time}${tag}</span></div>`;
+        const b = document.createElement("div");
+        b.className = "b";
+        b.style.whiteSpace = "pre-line";
+        b.textContent = bodyText;
+        row.appendChild(b);
+        box.appendChild(row);
+      }
+    }
+
+    d2.appendChild(box);
+    card.appendChild(d2);
+
+    body.appendChild(card);
+  }
+}
+
+// toast helper
+function toastChapterAdvance(prevEraIdx){
+  toast(`<strong>章が進みました</strong><br><span class="muted">前章の記録を読み返せます。</span><div class="row" style="margin-top:10px"><button class="btn" id="toastReReadBtn" style="pointer-events:auto">前章を読む</button><button class="btn" id="toastArchiveBtn" style="pointer-events:auto">書庫を開く</button></div>`);
+  $("#toastReReadBtn").onclick = () => { $("#toast").style.display="none"; openStoryArchive(clamp(prevEraIdx||0,0,ERAS.length-1)); };
+  $("#toastArchiveBtn").onclick = () => { $("#toast").style.display="none"; openStoryArchive("all"); };
+}
+
+// =========================
+// Term / Glossary (subtle cross-link)
+// =========================
+function setTermFocus(term, fromCardId){
+  if (!term) return;
+  S.termFocus = term;
+  S.termBiasLeft = 3;
+  S.termLastCard = fromCardId || null;
+  S.termFocusAt = now();
+  const hint = peekFragmentHint(term);
+  const hintLine = hint
+    ? `<br><span class="muted">──「${hint}」の見出しが、ノートの余白に滲む。</span>`
+    : `<br><span class="muted">──ログに“似た匂い”が寄ってくる（数回だけ）。</span>`;
+  toast(`<strong>用語：${term}</strong>${hintLine}`);
+  save();
+  if (S.tab === "archive") renderRight();
+}
+
+function clearTermFocus(){
+  S.termFocus = null;
+  S.termBiasLeft = 0;
+  S.termLastCard = null;
+  S.termFocusAt = 0;
+}
+
+function peekFragmentHint(term){
+  try{
+    const era = S.era;
+    const seen = S.storySeen || {};
+    let pool = FRAGMENTS.filter(f => !seen[f.id]
+      && Array.isArray(f.terms) && f.terms.includes(term)
+      && (f.eraMin == null || era >= f.eraMin)
+      && (f.eraMax == null || era <= f.eraMax)
+    );
+    if (pool.length === 0){
+      pool = FRAGMENTS.filter(f => !seen[f.id]
+        && Array.isArray(f.terms) && f.terms.includes(term)
+      );
+    }
+    if (pool.length === 0) return "";
+    const f = pool[(Math.random()*pool.length)|0];
+    return f.title || "";
+  }catch(e){
+    return "";
+  }
+}
+
+function cardTitleById(id){
+  const c = CONCEPT_CARDS.find(x => x.id === id);
+  return c ? c.name : id;
+}
+
+  function maybeFragment(kind, payload){
+    const era = S.era;
+    const seen = S.storySeen || {};
+    let pool = FRAGMENTS.filter(f => !seen[f.id]
+      && (f.eraMin == null || era >= f.eraMin)
+      && (f.eraMax == null || era <= f.eraMax)
+    );
+
+    pool = pool.filter(f => Array.isArray(f.on) ? f.on.includes(kind) : (f.on === kind));
+
+    if (kind === "equip" && payload){
+      pool = pool.filter(f => !f.equipId || f.equipId === payload);
+    }
+    if (kind === "milestone"){
+      pool = pool.filter(f => (f.atPapers || 0) === (S.totalPapers || 0));
+    }
+
+    if (pool.length === 0) return;
+
+    // 章到達・節目は必ず出す。その他はたまに。
+let chance = 1.0;
+if (kind === "paper") chance = 0.22;
+if (kind === "equip") chance = 0.35;
+
+// 用語フォーカス中は、少しだけ関連断章が寄ってくる（匂わせ）
+const focus = S.termFocus;
+const focusAge = (S.termFocusAt||0) ? (now() - (S.termFocusAt||0)) : 0;
+if (focus && focusAge > 12*60*1000) clearTermFocus(); // 12分で自然消滅
+
+const biasOn = (S.termFocus && (S.termBiasLeft||0) > 0 && (kind === "paper" || kind === "equip"));
+if (biasOn) chance = Math.min(0.75, chance + 0.18);
+
+if (Math.random() > chance) return;
+
+let pick = null;
+if (biasOn){
+  const matches = pool.filter(x => Array.isArray(x.terms) && x.terms.includes(S.termFocus));
+  if (matches.length){
+    const src = (Math.random() < 0.68) ? matches : pool;
+    pick = src[(Math.random() * src.length) | 0];
+  }else{
+    pick = pool[(Math.random() * pool.length) | 0];
+  }
+}else{
+  pick = pool[(Math.random() * pool.length) | 0];
+}
+
+addFragment(pick);
+  }
+
+  function gainInsight(n, reason){
+    const before = S.insight;
+    S.insight += Math.floor(n);
+    if (Math.floor(n) > 0) log("洞察 +"+Math.floor(n), reason || "経験が折り重なった。");
+    if (before !== S.insight) toast(`<strong>洞察 +${Math.floor(n)}</strong><br>ショップで永続強化できます。`);
+  }
+
+  function nextChapter(){
+    if (!canNextEra()) return;
+    const prevEra = S.era;
+    S.era++;
+    const era = currentEra();
+    const reward = 1 + S.era; // シンプルに章が進むほど洞察増
+    gainInsight(reward, `章「${era.title}」に到達。`);
+    log("章が進んだ", `${era.name} — 「${era.title}」`);
+    archivePush({ kind:"chapter", id:`chapter:${S.era}`, era:S.era, title:"章が進んだ", text:`${era.name} — 「${era.title}」`, at: now() }, true);
+    toastChapterAdvance(prevEra);
+    maybeFragment("chapter");
+    renderAll();
+    save();
+  }
+
+  // =========================
+  // Actions
+  // =========================
+
+  function spawnTapFx(ev, text){
+    try{
+      let x = 0, y = 0;
+      if (ev && typeof ev.clientX === "number" && typeof ev.clientY === "number"){
+        x = ev.clientX; y = ev.clientY;
+      } else {
+        const b = document.getElementById("btnResearch");
+        if (b){
+          const r = b.getBoundingClientRect();
+          x = r.left + r.width/2;
+          y = r.top + r.height/2;
+        } else {
+          x = window.innerWidth/2;
+          y = window.innerHeight/2;
+        }
+      }
+      const n = document.createElement("div");
+      n.className = "tapFx";
+      n.textContent = text || "+";
+      n.style.left = x + "px";
+      n.style.top  = y + "px";
+      document.body.appendChild(n);
+
+      const ring = document.createElement("div");
+      ring.className = "tapRing";
+      ring.style.left = x + "px";
+      ring.style.top  = y + "px";
+      document.body.appendChild(ring);
+
+      setTimeout(() => { n.remove(); ring.remove(); }, 700);
+    }catch(_){}
+  }
+
+  function doClick(ev){
+    const gain = BAL.clickBase * clickMult();
+    S.data += gain;
+
+    // クリックの瞬間に見えるフィードバック（数値+エフェクト）
+    const v = document.getElementById("vData");
+    if (v) v.textContent = fmt(S.data);
+    spawnTapFx(ev, `+${fmt(gain)}`);
+  }
+
+  function buyEquip(id){
+    const e = EQUIP.find(x => x.id === id);
+    if (!e) return;
+    if (S.era < e.unlockEra) return;
+    const c = equipCost(e);
+    if (S.data < c) return;
+    S.data -= c;
+    S.equip[id] = (S.equip[id]||0) + 1;
+    log("設備購入", `${e.name}（+${fmt(e.base)} /秒）`);
+    maybeFragment("equip", e.id);
+    renderAll();
+    save();
+  }
+
+  function writePaper(){
+    const c = paperCost();
+    if (S.data < c) return;
+    S.data -= c;
+    S.papers += 1;
+    S.totalPapers += 1;
+
+    // 論文はストーリーの進行トリガー
+    if (S.papers === 1) log("初稿", "はじめての論文。誤差と向き合う時間。");
+    if (S.totalPapers % 10 === 0) log("節目", `通算 ${S.totalPapers} 本目。手つきが少し洗練される。`);
+
+    // 章到達で「次の章へ」ボタンが有効になる
+    maybeFragment("milestone");
+    maybeFragment("paper");
+
+    renderAll();
+    save();
+  }
+
+  // =========================
+  // Tabs
+  // =========================
+  const TABS = [
+    { id:"lab", name:"実験室", title:"実験室" },
+    { id:"shop", name:"洞察", title:"洞察" },
+    { id:"archive", name:"年表", title:"年表" },
+    { id:"settings", name:"設定", title:"設定" },
+  ];
+
+  function mountTabs(){
+    const el = $("#tabs");
+    el.innerHTML = "";
+    for (const t of TABS){
+      const b = document.createElement("div");
+      b.className = "tab" + (S.tab === t.id ? " active" : "");
+      b.textContent = t.name;
+      b.onclick = () => { S.tab = t.id; renderRight(); save(); };
+      el.appendChild(b);
+    }
+  }
+
+  // =========================
+  // Render
+  // =========================
+  function renderStats(){
+    const era = currentEra();
+    $("#vEra").textContent = era.name;
+    $("#vData").textContent = fmt(S.data);
+    $("#vPapers").textContent = fmtInt(S.totalPapers);
+    $("#vInsight").textContent = fmtInt(S.insight);
+    $("#vDps").textContent = fmt(dps());
+  }
+
+  function renderStory(){
+    const era = currentEra();
+    $("#storyTitle").textContent = `「${era.title}」`;
+    $("#storyText").textContent = era.text;
+    $("#storyReq").textContent = nextEraReqText();
+
+    const btn = $("#btnNextChapter");
+    btn.disabled = !canNextEra();
+
+    const logEl = $("#log");
+    logEl.innerHTML = "";
+    if (S.log.length === 0){
+      const w = document.createElement("div");
+      w.className = "logItem";
+      w.innerHTML = `<div class="t">はじめに</div><div class="b">右側の「ラボ」で研究を進め、論文を書いて章を進めてください。
+
+※ この版では、論文や設備購入の節目で“断章”がログに流れます。物理と哲学の補助線として読んでください。</div>`;
+      logEl.appendChild(w);
+    } else {
+      for (const it of S.log){
+        const d = new Date(it.at);
+        const time = d.toLocaleString("ja-JP",{month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit"});
+        const row = document.createElement("div");
+        row.className = "logItem";
+        row.innerHTML = `<div class="t">${it.t} <span class="muted">・${time}</span></div><div class="b">${it.b}</div>`;
+        logEl.appendChild(row);
+      }
+    }
+  }
+
+  function renderRight(){
+    mountTabs();
+    const t = TABS.find(x => x.id === S.tab) || TABS[0];
+    $("#rightTitle").textContent = t.title;
+
+    const root = $("#right");
+    root.innerHTML = "";
+
+    if (S.tab === "lab"){
+      const btnResearch = document.createElement("button");
+      btnResearch.id = "btnResearch";
+      btnResearch.className = "btn primary big";
+      btnResearch.textContent = "研究する（クリック）";
+
+      // iPhoneでも即反応させる（pointerdown→即、keyboard→click）
+      let lastPD = 0;
+      btnResearch.addEventListener("pointerdown", (ev) => {
+        lastPD = (window.performance && performance.now) ? performance.now() : Date.now();
+        doClick(ev);
+      });
+      btnResearch.addEventListener("click", (ev) => {
+        const nowt = (window.performance && performance.now) ? performance.now() : Date.now();
+        if (nowt - lastPD < 450) return; // pointerdown後のclick二重発火を避ける
+        doClick(ev); // キーボード操作など
+      });
+
+      const row = document.createElement("div");
+      row.className = "row";
+      row.style.marginTop = "10px";
+
+      const btnPaper = document.createElement("button");
+      btnPaper.id = "btnPaper";
+      btnPaper.className = "btn";
+      btnPaper.textContent = `論文を書く（コスト ${fmt(paperCost())}）`;
+      btnPaper.disabled = S.data < paperCost();
+      btnPaper.onclick = writePaper;
+
+      const hint = document.createElement("div");
+      hint.className = "muted";
+      hint.style.marginTop = "10px";
+      hint.textContent = "設備を買うと自動でデータが増えます。論文を重ねると章が進み、洞察が手に入ります。";
+
+      root.appendChild(btnResearch);
+      row.appendChild(btnPaper);
+      root.appendChild(row);
+      root.appendChild(hint);
+
+      const list = document.createElement("div");
+      list.className = "list";
+      list.style.marginTop = "12px";
+
+      // 現章で買えるものだけ表示（シンプル）
+      const items = EQUIP.filter(e => e.unlockEra <= S.era);
+      for (const e of items){
+        const q = S.equip[e.id] || 0;
+        const c = equipCost(e);
+        const card = document.createElement("div");
+        card.className = "card";
+        const can = S.data >= c;
+        card.innerHTML = `
+          <div class="name">${e.name} <span class="pill">所持 ${q}</span></div>
+          <div class="desc">${e.desc}</div>
+          <div class="meta">
+            <span class="pill">+${fmt(e.base)} /秒</span>
+            <span class="pill">コスト ${fmt(c)}</span>
+          </div>
+        `;
+        const act = document.createElement("div");
+        act.className = "row";
+        act.style.marginTop = "10px";
+        const b = document.createElement("button");
+          b.id = "buy_" + e.id;
+          b.className = "btn";
+        b.textContent = "購入";
+        b.disabled = !can;
+        b.onclick = () => buyEquip(e.id);
+        act.appendChild(b);
+        card.appendChild(act);
+
+        list.appendChild(card);
+      }
+      root.appendChild(list);
+
+    } else if (S.tab === "shop"){
+      const top = document.createElement("div");
+      top.className = "muted";
+      top.textContent = "洞察を使って、永続強化を購入できます（章を進めるほど洞察が増えます）。";
+      root.appendChild(top);
+
+      const list = document.createElement("div");
+      list.className = "list";
+      list.style.marginTop = "12px";
+
+      for (const u of UPGRADES){
+        const lvl = S.upg[u.id] || 0;
+        const atMax = lvl >= u.max;
+        const cost = u.cost;
+        const can = S.insight >= cost && !atMax;
+
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `
+          <div class="name">${u.name} <span class="pill">Lv ${lvl}/${u.max}</span></div>
+          <div class="desc">${u.desc}</div>
+          <div class="meta">
+            <span class="pill">コスト 洞察 ${cost}</span>
+          </div>
+        `;
+        const act = document.createElement("div");
+        act.className = "row";
+        act.style.marginTop = "10px";
+        const b = document.createElement("button");
+        b.className = "btn";
+        b.textContent = atMax ? "最大" : "購入";
+        b.disabled = !can;
+        b.onclick = () => {
+          if (S.insight < cost) return;
+          if ((S.upg[u.id]||0) >= u.max) return;
+          S.insight -= cost;
+          S.upg[u.id] = (S.upg[u.id]||0) + 1;
+          log("洞察購入", `${u.name} Lv${S.upg[u.id]}（洞察 -${cost}）`);
+          renderAll();
+          save();
+        };
+        act.appendChild(b);
+        card.appendChild(act);
+        list.appendChild(card);
+      }
+
+      root.appendChild(list);
+
+      // 転生（かなり簡潔に）
+      const box = document.createElement("div");
+      box.className = "card";
+      box.style.marginTop = "12px";
+      const done = (S.era >= ERAS.length-1) && (S.totalPapers >= ERAS[ERAS.length-1].reqPapers);
+      const bonus = Math.floor(Math.sqrt(Math.max(0, S.totalPapers)) / 2);
+      box.innerHTML = `
+        <div class="name">転生（再構築）</div>
+        <div class="desc">全てを作り直して、洞察を持ち帰る。<br>※ 史実ラインは維持しつつ「あなたの研究手つき」を次の周回へ渡します。</div>
+        <div class="meta">
+          <span class="pill">条件：最終章到達</span>
+          <span class="pill">獲得洞察：+${bonus}</span>
+        </div>
+      `;
+      const act = document.createElement("div");
+      act.className = "row";
+      act.style.marginTop = "10px";
+      const b = document.createElement("button");
+      b.className = "btn danger";
+      b.textContent = "転生する";
+      b.disabled = !done || bonus <= 0;
+      b.onclick = () => {
+        // 永続（洞察・強化）は残す。データ・論文・設備・章はリセット。
+        gainInsight(bonus, "転生：学びを持ち帰った。");
+        const keepInsight = S.insight;
+        const keepUpg = {...S.upg};
+        const keepTotal = S.totalPapers; // 通算は履歴として残す
+        S = DEFAULT();
+        S.insight = keepInsight;
+        S.upg = keepUpg;
+        S.totalPapers = keepTotal; // 記録
+        log("転生", "すべてを整え直し、また最初の章へ。");
+        renderAll();
+        save();
+      };
+      act.appendChild(b);
+      box.appendChild(act);
+      root.appendChild(box);
+
+    } else if (S.tab === "archive"){
+      const p = document.createElement("div");
+      p.className = "muted";
+      p.textContent = "どの章まで進んだか、時代の道筋をまとめます。";
+      root.appendChild(p);
+
+      const list = document.createElement("div");
+      list.className = "list";
+      list.style.marginTop = "12px";
+
+      for (let i=0; i<ERAS.length; i++){
+        const e = ERAS[i];
+        const cleared = (S.era > i) || (i === S.era);
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `
+          <div class="name">${cleared ? "✓ " : ""}${e.name}</div>
+          <div class="desc">章「${e.title}」<br><span class="muted">条件：論文 ${e.reqPapers}</span></div>
+        `;
+        list.appendChild(card);
+      }
+      root.appendChild(list);
+
+      // 概念カード
+      const cap = document.createElement("div");
+      cap.className = "card";
+      cap.style.marginTop = "12px";
+      cap.innerHTML = `
+        <div class="name">概念カード</div>
+        <div class="desc">章が進むほど、物理と哲学の補助線が増えます。読み返すと、同じ章でも意味が変わります。</div>
+      `;
+      root.appendChild(cap);
+
+      const clist = document.createElement("div");
+      clist.className = "list";
+      clist.style.marginTop = "12px";
+
+      const cards = CONCEPT_CARDS.filter(c => c.eraUnlock <= S.era);
+      for (const c of cards){
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `
+          <div class="name">${c.name} <span class="pill">${c.tag}</span></div>
+          <div class="desc">${c.desc}<br><span class="muted">問い：${c.q}</span></div>
+        `;
+        const act = document.createElement("div");
+        act.className = "row";
+        act.style.marginTop = "10px";
+        const b = document.createElement("button");
+        b.className = "btn";
+        b.textContent = "ログに投げる";
+        b.onclick = () => { log("問い", c.q); renderStory(); save(); toast(`<strong>${c.name}</strong><br>${c.desc}<br><br><span class="muted">問い：${c.q}</span>`); };
+        act.appendChild(b);
+        card.appendChild(act);
+        clist.appendChild(card);
+      }
+      root.appendChild(clist);
+
+
+    } else if (S.tab === "settings"){
+      const p = document.createElement("div");
+      p.className = "muted";
+      p.textContent = "セーブ管理と、旧版データの取り込み。";
+      root.appendChild(p);
+
+      const box = document.createElement("div");
+      box.className = "card";
+      box.style.marginTop = "12px";
+      box.innerHTML = `
+        <div class="name">セーブJSON</div>
+        <div class="desc">エクスポート/インポート用。改造や共有に使えます。</div>
+        <div class="meta"><span class="pill">キー：${SAVE_KEY}</span></div>
+        <textarea id="saveBox" placeholder="ここにJSONが入ります"></textarea>
+      `;
+      root.appendChild(box);
+
+      const row = document.createElement("div");
+      row.className = "row";
+      row.style.marginTop = "10px";
+
+      const bExp = document.createElement("button");
+      bExp.className = "btn";
+      bExp.textContent = "この欄にエクスポート";
+      bExp.onclick = () => {
+        save();
+        $("#saveBox").value = JSON.stringify(S);
+        toast("<strong>エクスポート</strong><br>JSONをテキスト欄に出力しました。");
+      };
+
+      const bImp = document.createElement("button");
+      bImp.className = "btn";
+      bImp.textContent = "この欄からインポート";
+      bImp.onclick = () => {
+        try{
+          const txt = ($("#saveBox").value || "").trim();
+          const obj = JSON.parse(txt);
+          if (!obj || typeof obj !== "object") throw new Error("bad");
+          S = Object.assign(DEFAULT(), obj);
+          // 欠けを補う
+          for (const e of EQUIP) if (S.equip[e.id] == null) S.equip[e.id] = 0;
+          for (const u of UPGRADES) if (S.upg[u.id] == null) S.upg[u.id] = 0;
+          S.era = clamp(S.era||0, 0, ERAS.length-1);
+          S.lastTickAt = now();
+          log("インポート", "JSONを読み込みました。");
+          renderAll();
+          save();
+          toast("<strong>インポート成功</strong><br>反映しました。");
+        }catch(e){
+          toast("<strong>インポート失敗</strong><br>JSONが不正です。");
+        }
+      };
+
+      const bWipe = document.createElement("button");
+      bWipe.className = "btn danger";
+      bWipe.textContent = "このセーブを初期化";
+      bWipe.onclick = () => {
+        localStorage.removeItem(SAVE_KEY);
+        S = DEFAULT();
+        renderAll();
+        toast("<strong>初期化</strong><br>セーブを削除しました。");
+      };
+
+      row.appendChild(bExp);
+      row.appendChild(bImp);
+      row.appendChild(bWipe);
+      root.appendChild(row);
+
+      const old = document.createElement("div");
+      old.className = "card";
+      old.style.marginTop = "12px";
+      old.innerHTML = `
+        <div class="name">旧版セーブ取り込み</div>
+        <div class="desc">旧版（v4系）の主要値だけを、ざっくり移植します。<br>※ 章/装置は簡略化しているため、完全一致にはなりません。</div>
+        <div class="meta"><span class="pill">キー：${OLD_SAVE_KEY}</span></div>
+      `;
+      const act = document.createElement("div");
+      act.className = "row";
+      act.style.marginTop = "10px";
+
+      const bOld = document.createElement("button");
+      bOld.className = "btn";
+      bOld.textContent = "旧版から取り込む";
+      bOld.onclick = () => importOldSave();
+      act.appendChild(bOld);
+      old.appendChild(act);
+      root.appendChild(old);
+    }
+
+    // common: keep header buttons synced
+    $("#btnExport").onclick = () => {
+      save();
+      const txt = JSON.stringify(S);
+      navigator.clipboard?.writeText(txt).catch(()=>{});
+      toast("<strong>エクスポート</strong><br>JSONをクリップボードにコピーしました（対応ブラウザのみ）。");
+    };
+    $("#btnImport").onclick = () => {
+      toast("設定タブのテキスト欄からインポートできます。");
+      S.tab = "settings";
+      renderRight();
+    };
+  }
+
+  function renderAll(){
+    renderStats();
+    renderStory();
+    renderRight();
+  }
+
+  // =========================
+  // Save / Load
+  // =========================
+  function save(){
+    S.lastTickAt = now();
+    try{
+      localStorage.setItem(SAVE_KEY, JSON.stringify(S));
+      return true;
+    }catch(e){
+      toast("<strong>保存失敗</strong><br>ローカル保存ができませんでした。容量/設定をご確認ください。");
+      return false;
+    }
+  }
+
+  function load(){
+    try{
+      const raw = localStorage.getItem(SAVE_KEY);
+      if (!raw) return false;
+      const obj = JSON.parse(raw);
+      S = Object.assign(DEFAULT(), obj);
+      // 補完
+      for (const e of EQUIP) if (S.equip[e.id] == null) S.equip[e.id] = 0;
+      for (const u of UPGRADES) if (S.upg[u.id] == null) S.upg[u.id] = 0;
+      S.era = clamp(S.era||0, 0, ERAS.length-1);
+      if (!Array.isArray(S.log)) S.log = [];
+      if (typeof S.totalPapers !== "number") S.totalPapers = S.papers || 0;
+      return true;
+    }catch(e){
+      return false;
+    }
+  }
+
+  function applyOffline(){
+    const t = now();
+    const last = S.lastTickAt || t;
+    let dt = Math.max(0, Math.floor((t - last)/1000));
+    const cap = Math.floor(BAL.offlineCapSec * offlineMult());
+    dt = Math.min(dt, cap);
+    if (dt <= 2) return;
+
+    const gain = dps() * dt;
+    if (gain > 0){
+      S.data += gain;
+      $("#vOfflineChip").style.display = "";
+      $("#vOffline").textContent = "+"+fmt(gain);
+      log("オフライン", `${dt}秒分の自動出力が加算された。`);
+    }
+  }
+
+  function importOldSave(){
+    try{
+      const raw = localStorage.getItem(OLD_SAVE_KEY);
+      if (!raw){
+        toast("<strong>旧版セーブが見つかりません</strong><br>同じブラウザ/同じ端末で開いていますか？");
+        return;
+      }
+      const old = JSON.parse(raw);
+
+      // 旧版の主要値（data/papers/insight/meta）だけを抽出
+      const newS = DEFAULT();
+      newS.data = Number(old.data || 0);
+      newS.totalPapers = Number(old.totalPapers || old.papers || 0);
+      newS.papers = 0; // 本数は通算で管理する（この版では“章の条件”に通算を使う）
+      newS.insight = Number(old.insight || 0);
+
+      // metaLvl から近いものへ（ざっくり）
+      const m = old.metaLvl || {};
+      // クリック系（m_2 などがあれば寄せる）
+      newS.upg.u_click = clamp(Number(m.m_2 || m.m_1 || 0), 0, UPGRADES.find(x=>x.id==="u_click").max);
+      newS.upg.u_lab   = clamp(Number(m.m_3 || 0), 0, UPGRADES.find(x=>x.id==="u_lab").max);
+      newS.upg.u_cost  = clamp(Number(m.m_4 || 0), 0, UPGRADES.find(x=>x.id==="u_cost").max);
+      newS.upg.u_paper = clamp(Number(m.m_5 || 0), 0, UPGRADES.find(x=>x.id==="u_paper").max);
+      newS.upg.u_offline = clamp(Number(m.m_6 || 0), 0, UPGRADES.find(x=>x.id==="u_offline").max);
+
+      // 章推定（通算論文から）
+      let era = 0;
+      for (let i=0;i<ERAS.length;i++){
+        if (newS.totalPapers >= ERAS[i].reqPapers) era = i;
+      }
+      newS.era = era;
+      newS.log = [{ t:"旧版取り込み", b:`旧版の主要値を移植しました（通算論文 ${newS.totalPapers}）。`, at: now() }];
+
+      S = newS;
+      applyOffline();
+  ensureStoryArchive(); // 初回計算は不要だが、念のため
+      renderAll();
+      save();
+      toast("<strong>取り込み完了</strong><br>章/装置は簡略版の設計に合わせて再構成しています。");
+    }catch(e){
+      toast("<strong>取り込み失敗</strong><br>旧版セーブの解析に失敗しました。");
+    }
+  }
+
+  // =========================
+  // Hook UI
+  // =========================
+  $("#btnSave").onclick = () => {
+    save();
+    toast("<strong>保存しました</strong>");
+  };
+  $("#btnNextChapter").onclick = nextChapter;
+  $("#btnStoryArchive").onclick = () => openStoryArchive("all");
+
+  // Story archive modal
+  $("#btnStoryArchiveClose").onclick = closeStoryArchive;
+  $("#btnStoryArchiveClear").onclick = () => { $("#storyArchiveSearch").value = ""; renderStoryArchiveModal(); save(); };
+  $("#storyArchiveEra").onchange = () => { renderStoryArchiveModal(); save(); };
+  $("#storyArchiveSearch").oninput = () => { renderStoryArchiveModal(); save(); };
+  $("#storyArchiveModal").addEventListener("click", (ev) => {
+    if (ev.target && ev.target.id === "storyArchiveModal") closeStoryArchive();
+  });
+
+  // keyboard shortcuts（最小限）
+  window.addEventListener("keydown", (ev) => {
+    if (ev.key === "Escape"){
+      if ($("#storyArchiveModal").style.display !== "none") closeStoryArchive();
+      if ($("#toast").style.display !== "none") $("#toast").style.display = "none";
+    }
+
+    if (ev.key === " "){ ev.preventDefault(); doClick(); }
+    if (ev.key.toLowerCase() === "l"){ S.tab="lab"; renderRight(); }
+    if (ev.key.toLowerCase() === "s"){ S.tab="shop"; renderRight(); }
+  });
+
+  // =========================
+  // Boot
+  // =========================
+  const had = load();
+  applyOffline();
+  ensureStoryArchive();
+  if (!had){
+    log("開始", "研究は「小さく始めて、大きく続ける」。");
+  } else {
+    log("再開", "保存された続きから。");
+  }
+  renderAll();
+  save();
+
+  // Game loop（シンプル：1秒に一回だけ進む）
+  let last = now();
+  setInterval(() => {
+    const t = now();
+    const dt = Math.max(0, (t - last) / 1000);
+    last = t;
+
+    const g = dps() * dt;
+    if (g > 0){
+      S.data += g;
+    }
+
+    // 章条件が満たされたらボタン更新
+    $("#btnNextChapter").disabled = !canNextEra();
+
+    // 表示更新は軽量に（毎秒）
+    renderStats();
+    updateLabUI();
+
+    // autosave（20秒）
+    if ((t/1000|0) % 20 === 0) save();
+  }, 1000);
+})();
+</script>
+</body>
+</html>
